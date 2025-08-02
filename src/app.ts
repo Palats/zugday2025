@@ -106,8 +106,8 @@ export class ZGApp extends LitElement {
 
     // Create the SVG container.
     const svg = d3.create("svg")
-      .attr("width", width)
-      .attr("height", height);
+      .attr("preserveAspectRatio", "meet")
+      .attr("viewBox", `0 0 ${width} ${height}`);
 
     // Draw Switzerland
     svg.append("path")
@@ -156,6 +156,18 @@ export class ZGApp extends LitElement {
   }
 
   static styles = css`
+    :host {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    svg {
+      height: 100%;
+      width: 100%;
+    }
+
     .country {
       fill: #e9ecef;
       stroke: #adb5bd;
