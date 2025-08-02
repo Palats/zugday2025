@@ -16,3 +16,11 @@ Run:
 ```
 npm run dev
 ```
+
+Source swiss-maps.json:
+
+  - https://swiss-maps.interactivethings.io/
+  - WGS 84, Switzerland, Cantons, Lakes, no simplification
+
+https://github.com/interactivethings/swiss-maps
+https://github.com/mikpan/ch-maps

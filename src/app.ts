@@ -1,7 +1,10 @@
 import { LitElement, css, html } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
+import { customElement } from 'lit/decorators.js'
 import * as d3 from 'd3';
-import * as topojson from "topojson-client";
+import * as topojson from 'topojson-client';
+
+import rawmapdata from './swiss-maps.json';
+const mapdata = (rawmapdata as any) as SwissMap;  // XXX
 
 interface City {
   name: string;
@@ -30,13 +33,12 @@ const connections: Connection[] = [
   { source: "Basel", target: "Zurich" },
 ];
 
-export interface WorldAtlas extends TopoJSON.Topology {
+interface SwissMap extends TopoJSON.Topology {
   objects: {
-    countries: { type: "GeometryCollection"; geometries: Array<TopoJSON.Polygon | TopoJSON.MultiPolygon> };
-    land: TopoJSON.GeometryCollection;
-  };
-  bbox: [number, number, number, number];
-  transform: TopoJSON.Transform;
+    cantons: { type: "GeometryCollection"; geometries: Array<TopoJSON.Polygon | TopoJSON.MultiPolygon> };
+    lakes: { type: "GeometryCollection"; geometries: Array<TopoJSON.Polygon | TopoJSON.MultiPolygon> };
+    country: { type: "GeometryCollection"; geometries: Array<TopoJSON.Polygon | TopoJSON.MultiPolygon> };
+  }
 }
 
 /**
@@ -44,54 +46,7 @@ export interface WorldAtlas extends TopoJSON.Topology {
  */
 @customElement('zg-app')
 export class ZGApp extends LitElement {
-  @property({ type: Object })
-  switzerland?: GeoJSON.Feature<GeoJSON.Geometry>;
-
-  @property()
-  preloadFailed?: string;
-
-
-  constructor() {
-    super();
-    this.preload();
-  }
-
-  async preload() {
-    try {
-      // https://github.com/topojson/world-atlas
-
-      // Fetch the TopoJSON data for Switzerland
-      const topoData = await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json") as WorldAtlas;
-
-      if (!topoData || !('objects' in topoData) || !('countries' in topoData.objects)) {
-        throw new Error("Invalid TopoJSON data structure.");
-      }
-
-      // Extract the Switzerland geometry from the TopoJSON data
-      const countries = topojson.feature(topoData, topoData.objects.countries);
-
-      console.log(countries);
-      const switzerland = countries.features.find(d => (d as any).properties.name === 'Switzerland'); // XXX
-
-      if (!switzerland) {
-        throw new Error("Switzerland not found in TopoJSON data.");
-      }
-
-      this.switzerland = switzerland;
-    }
-    catch (error) {
-      console.error(error);
-    }
-  }
-
   render() {
-    if (this.preloadFailed) {
-      return html`preloading failed, see console.`;
-    }
-    if (!this.switzerland) {
-      return html`loading...`;
-    }
-
     const width = 800;
     const height = 600;
 
@@ -106,13 +61,26 @@ export class ZGApp extends LitElement {
 
     // Create the SVG container.
     const svg = d3.create("svg")
-      .attr("preserveAspectRatio", "meet")
+      .attr("preserveAspectRatio", "xMidYMid meet")
       .attr("viewBox", `0 0 ${width} ${height}`);
 
     // Draw Switzerland
+    const cantons = topojson.feature(mapdata, mapdata.objects.cantons);
+    const country = topojson.feature(mapdata, mapdata.objects.country);
+
     svg.append("path")
-      .datum(this.switzerland)
+      .datum(country)
       .attr("class", "country")
+      .attr("d", path);
+
+    svg.append("path")
+      .datum(cantons)
+      .attr("class", "canton")
+      .attr("d", path);
+
+    svg.append("path")
+      .datum(topojson.feature(mapdata, mapdata.objects.lakes))
+      .attr("class", "lake")
       .attr("d", path);
 
     const cityCoords = new Map<string, [number, number]>();
@@ -169,9 +137,20 @@ export class ZGApp extends LitElement {
     }
 
     .country {
-      fill: #e9ecef;
-      stroke: #adb5bd;
+      fill: #f7f7f7;
+      stroke: #5e6164;
       stroke-width: 1.5;
+    }
+
+    .canton {
+      fill: none;
+      stroke: #adb5bd;
+      stroke-width: 1;
+    }
+
+    .lake {
+      fill: #cee7ff;
+      stroke: none;
     }
 
     .connection-line {
