@@ -12,8 +12,8 @@ alldata.prepareData();
 @customElement("zg-app")
 export class ZGApp extends LitElement {
   render() {
-    const width = 800;
-    const height = 600;
+    const width = 650;
+    const height = 450;
 
     // Define a D3 projection for the map
     const projection = d3.geoMercator()
@@ -29,31 +29,34 @@ export class ZGApp extends LitElement {
       .attr("preserveAspectRatio", "xMidYMid meet")
       .attr("viewBox", `0 0 ${width} ${height}`);
 
-    svg.call(d3.zoom<SVGSVGElement, undefined>().on('zoom', e => {
-      svg.attr("transform", e.transform)
-    }));
+    const container = svg.append("g");
+
+    svg.call(d3.zoom<SVGSVGElement, undefined>()
+      .on('zoom', e => {
+        container.attr("transform", e.transform);
+      }));
 
     // Draw Switzerland
     const cantons = topojson.feature(alldata.mapdata, alldata.mapdata.objects.cantons);
     const country = topojson.feature(alldata.mapdata, alldata.mapdata.objects.country);
 
-    svg.append("path")
+    container.append("path")
       .datum(country)
       .attr("class", "country")
       .attr("d", path);
 
-    svg.append("path")
+    container.append("path")
       .datum(cantons)
       .attr("class", "canton")
       .attr("d", path);
 
-    svg.append("path")
+    container.append("path")
       .datum(topojson.feature(alldata.mapdata, alldata.mapdata.objects.lakes))
       .attr("class", "lake")
       .attr("d", path);
 
     // Draw connections
-    const connectionGroup = svg.selectAll(".connection-group")
+    const connectionGroup = container.selectAll(".connection-group")
       .data(alldata.connections)
       .join("g");
 
@@ -107,7 +110,7 @@ export class ZGApp extends LitElement {
     });
 
     // Draw cities
-    const cityGroup = svg.selectAll(".city-group")
+    const cityGroup = container.selectAll(".city-group")
       .data(alldata.relevantServicePoints)
       .enter()
       .append("g")
@@ -133,9 +136,9 @@ export class ZGApp extends LitElement {
   static styles = css`
     :host {
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       display: flex;
-      align-items: center;
+      align-items: stretch;
     }
 
     svg {
