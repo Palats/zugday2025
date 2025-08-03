@@ -13,7 +13,7 @@ alldata.prepareData();
 @customElement("zg-app")
 export class ZGApp extends LitElement {
   @property({ type: Number })
-  scale = 8000;
+  scale = 1;
 
   // Basic dimensions of the data in SVG
   private width = 650;
@@ -23,7 +23,10 @@ export class ZGApp extends LitElement {
   private svg?: d3.Selection<SVGSVGElement, undefined, null, undefined>;
 
   @property({ type: Object })
-  private container?: d3.Selection<SVGGElement, undefined, null, undefined>;
+  private mapcontainer?: d3.Selection<SVGGElement, undefined, null, undefined>;
+
+  @property({ type: Object })
+  private featurescontainer?: d3.Selection<SVGGElement, undefined, null, undefined>;
 
   firstUpdated() {
     // Create the SVG container.
@@ -31,83 +34,98 @@ export class ZGApp extends LitElement {
       .attr("preserveAspectRatio", "xMidYMid meet")
       .attr("viewBox", `0 0 ${this.width} ${this.height}`);
 
-    this.container = this.svg.append("g");
+    this.mapcontainer = this.svg.append("g");
+    this.featurescontainer = this.svg.append("g");
 
     // Set the zoomable property on the full SVG element so empty zones can also
     // be targets for zooming.
     this.svg.call(d3.zoom<SVGSVGElement, undefined>()
       .on('zoom', (e: d3zoom.D3ZoomEvent<SVGSVGElement, undefined>) => {
-        this.scale = e.transform.k * 8000;
+        if (!this.svg || !this.mapcontainer || !this.featurescontainer) {
+          console.error("not ready for zoom");
+          return;
+        }
 
+        this.scale = e.transform.k;
         const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
-        this.container!.attr("transform", panning.toString());
-        // this.container!.attr("transform", e.transform.toString());
-        //const t = new d3zoom.ZoomTransform(1 / e.transform.k, 0, 0);
-        //container.selectAll(".city-group")
-        //  .attr("transform-origin", "50% 50%")
-        //.attr("transform", t.toString());
+        this.mapcontainer.attr("transform", e.transform.toString());
+        this.featurescontainer.attr("transform", panning.toString());
       }));
   }
 
   render() {
-    if (!this.svg || !this.container) {
+    if (!this.svg || !this.mapcontainer || !this.featurescontainer) {
       return html`preparing`;
     }
 
-    this.container.selectChildren().remove();
+    this.mapcontainer.selectChildren().remove();
+    this.featurescontainer.selectChildren().remove();
 
-    // Define a D3 projection for the map
-    const projection = d3.geoMercator()
-      .scale(this.scale) // Adjust the scale to fit Switzerland
+    // Objective is to:
+    //  - Avoid redrawing the boundaries. I.e., rely on on transform to pan/zoom.
+    //  - Keep features at constant screen size.
+    //  - Make sure that features are aligned:
+    //     - Need reprojecting when zooming
+    //     - Can still use panning through transform
+
+    // map projection is always the same - we rely on transform.
+    const mapProjection = d3.geoMercator()
+      .scale(8000) // Adjust the scale to fit Switzerland
       .center([8.2275, 46.8182]) // Center on Switzerland's coordinates
-      .translate([this.width / 2, this.height / 2]);
+      .translate([this.width / 2, this.height / 2]);;
+    // features projection is scaled manually, while panning relies on transform.
+    const featuresProjection = d3.geoMercator()
+      .scale(this.scale * mapProjection.scale())
+      .center([mapProjection.center()[0], mapProjection.center()[1]])
+      .translate([
+        this.scale * mapProjection.translate()[0],
+        this.scale * mapProjection.translate()[1],
+      ]);
 
     // Create a D3 path generator
-    const path = d3.geoPath().projection(projection);
+    const path = d3.geoPath().projection(mapProjection);
 
     // Draw Switzerland
     const cantons = topojson.feature(alldata.mapdata, alldata.mapdata.objects.cantons);
     const country = topojson.feature(alldata.mapdata, alldata.mapdata.objects.country);
 
-    const container = this.container;
-
-    container.append("path")
+    this.mapcontainer.append("path")
       .datum(country)
       .attr("class", "country")
       .attr("d", path);
 
-    container.append("path")
+    this.mapcontainer.append("path")
       .datum(cantons)
       .attr("class", "canton")
       .attr("d", path);
 
-    container.append("path")
+    this.mapcontainer.append("path")
       .datum(topojson.feature(alldata.mapdata, alldata.mapdata.objects.lakes))
       .attr("class", "lake")
       .attr("d", path);
 
     // Draw connections
-    const connectionGroup = container.selectAll(".connection-group")
+    const connectionGroup = this.featurescontainer.selectAll(".connection-group")
       .data(alldata.connections)
       .join("g");
 
     connectionGroup.append("line")
       .attr("class", "connection-line")
-      .attr("x1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
-      .attr("y1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
-      .attr("x2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
-      .attr("y2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![1]);
+      .attr("x1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
+      .attr("y1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
+      .attr("x2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
+      .attr("y2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![1]);
 
     connectionGroup.each(function (c) {
       // Should probably use getTotalLength / getPointAtLength, but so far, I've failed
       // to make them work.
 
       // Switch to local coordinate space for calculations of label position.
-      const source = projection([
+      const source = featuresProjection([
         alldata.servicePointsByName.get(c.source)!.wgs84[0],
         alldata.servicePointsByName.get(c.source)!.wgs84[1],
       ])!;
-      const target = projection([
+      const target = featuresProjection([
         alldata.servicePointsByName.get(c.target)!.wgs84[0],
         alldata.servicePointsByName.get(c.target)!.wgs84[1],
       ])!;
@@ -141,7 +159,7 @@ export class ZGApp extends LitElement {
     });
 
     // Draw cities
-    const cityGroup = container.selectAll(".city-group")
+    const cityGroup = this.featurescontainer.selectAll(".city-group")
       .data(alldata.relevantServicePoints)
       .enter()
       .append("g")
@@ -149,15 +167,15 @@ export class ZGApp extends LitElement {
 
     cityGroup.append("circle")
       .attr("class", "city")
-      .attr("cx", sp => projection(sp.wgs84)?.[0] || 0)
-      .attr("cy", sp => projection(sp.wgs84)?.[1] || 0)
+      .attr("cx", sp => featuresProjection(sp.wgs84)?.[0] || 0)
+      .attr("cy", sp => featuresProjection(sp.wgs84)?.[1] || 0)
       .attr("r", 5);
 
     // City label
     cityGroup.append("text")
       .attr("class", "city-label")
-      .attr("x", sp => projection(sp.wgs84)?.[0] || 0)
-      .attr("y", sp => (projection(sp.wgs84)?.[1] || 0) - 10)
+      .attr("x", sp => featuresProjection(sp.wgs84)?.[0] || 0)
+      .attr("y", sp => (featuresProjection(sp.wgs84)?.[1] || 0) - 10)
       .text(sp => sp.designationOfficial);
 
 
