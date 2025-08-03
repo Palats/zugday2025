@@ -95,7 +95,12 @@ export class ZGApp extends LitElement {
 
     this.mapcontainer.append("path")
       .datum(country)
-      .attr("class", "country")
+      .attr("class", "country-background")
+      .attr("d", path);
+
+    this.mapcontainer.append("path")
+      .datum(topojson.feature(alldata.mapdata, alldata.mapdata.objects.lakes))
+      .attr("class", "lake")
       .attr("d", path);
 
     this.mapcontainer.append("path")
@@ -104,10 +109,9 @@ export class ZGApp extends LitElement {
       .attr("d", path);
 
     this.mapcontainer.append("path")
-      .datum(topojson.feature(alldata.mapdata, alldata.mapdata.objects.lakes))
-      .attr("class", "lake")
+      .datum(country)
+      .attr("class", "country-border")
       .attr("d", path);
-
   }
 
   buildFeatures() {
@@ -212,10 +216,14 @@ export class ZGApp extends LitElement {
       width: 100%;
     }
 
-    .country {
+    .country-background {
       fill: #f7f7f7;
-      stroke: #000000;
-      stroke-width: 1.5;
+    }
+
+    .country-border {
+      fill: none;
+      stroke: #313131;
+      stroke-width: 1.2;
     }
 
     .canton {
