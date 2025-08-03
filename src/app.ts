@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit"
-import { customElement } from "lit/decorators.js"
+import { customElement, property } from "lit/decorators.js"
 import * as d3 from "d3";
+import * as d3zoom from "d3-zoom";
 import * as topojson from "topojson-client";
 import * as alldata from "./alldata";
 
@@ -11,34 +12,64 @@ alldata.prepareData();
  */
 @customElement("zg-app")
 export class ZGApp extends LitElement {
+  @property({ type: Number })
+  scale = 8000;
+
+  // Basic dimensions of the data in SVG
+  private width = 650;
+  private height = 450;
+
+  @property({ type: Object })
+  private svg?: d3.Selection<SVGSVGElement, undefined, null, undefined>;
+
+  @property({ type: Object })
+  private container?: d3.Selection<SVGGElement, undefined, null, undefined>;
+
+  firstUpdated() {
+    // Create the SVG container.
+    this.svg = d3.create("svg")
+      .attr("preserveAspectRatio", "xMidYMid meet")
+      .attr("viewBox", `0 0 ${this.width} ${this.height}`);
+
+    this.container = this.svg.append("g");
+
+    // Set the zoomable property on the full SVG element so empty zones can also
+    // be targets for zooming.
+    this.svg.call(d3.zoom<SVGSVGElement, undefined>()
+      .on('zoom', (e: d3zoom.D3ZoomEvent<SVGSVGElement, undefined>) => {
+        this.scale = e.transform.k * 8000;
+
+        const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
+        this.container!.attr("transform", panning.toString());
+        // this.container!.attr("transform", e.transform.toString());
+        //const t = new d3zoom.ZoomTransform(1 / e.transform.k, 0, 0);
+        //container.selectAll(".city-group")
+        //  .attr("transform-origin", "50% 50%")
+        //.attr("transform", t.toString());
+      }));
+  }
+
   render() {
-    const width = 650;
-    const height = 450;
+    if (!this.svg || !this.container) {
+      return html`preparing`;
+    }
+
+    this.container.selectChildren().remove();
 
     // Define a D3 projection for the map
     const projection = d3.geoMercator()
-      .scale(8000) // Adjust the scale to fit Switzerland
+      .scale(this.scale) // Adjust the scale to fit Switzerland
       .center([8.2275, 46.8182]) // Center on Switzerland's coordinates
-      .translate([width / 2, height / 2]);
+      .translate([this.width / 2, this.height / 2]);
 
     // Create a D3 path generator
     const path = d3.geoPath().projection(projection);
 
-    // Create the SVG container.
-    const svg = d3.create("svg")
-      .attr("preserveAspectRatio", "xMidYMid meet")
-      .attr("viewBox", `0 0 ${width} ${height}`);
-
-    const container = svg.append("g");
-
-    svg.call(d3.zoom<SVGSVGElement, undefined>()
-      .on('zoom', e => {
-        container.attr("transform", e.transform);
-      }));
-
     // Draw Switzerland
     const cantons = topojson.feature(alldata.mapdata, alldata.mapdata.objects.cantons);
     const country = topojson.feature(alldata.mapdata, alldata.mapdata.objects.country);
+
+    const container = this.container;
 
     container.append("path")
       .datum(country)
@@ -130,7 +161,7 @@ export class ZGApp extends LitElement {
       .text(sp => sp.designationOfficial);
 
 
-    return html`${svg.node()}`;
+    return html`${this.svg.node()}`;
   }
 
   static styles = css`
