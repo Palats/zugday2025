@@ -49,15 +49,58 @@ export class ZGApp extends LitElement {
       .attr("d", path);
 
     // Draw connections
-    svg.selectAll(".connection-line")
+    const connectionGroup = svg.selectAll(".connection-group")
       .data(alldata.connections)
-      .enter()
-      .append("line")
+      .join("g");
+
+    connectionGroup.append("line")
       .attr("class", "connection-line")
-      .attr("x1", d => projection(alldata.servicePointsByName.get(d.source)!.wgs84)![0])
-      .attr("y1", d => projection(alldata.servicePointsByName.get(d.source)!.wgs84)![1])
-      .attr("x2", d => projection(alldata.servicePointsByName.get(d.target)!.wgs84)![0])
-      .attr("y2", d => projection(alldata.servicePointsByName.get(d.target)!.wgs84)![1]);
+      .attr("x1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
+      .attr("y1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
+      .attr("x2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
+      .attr("y2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![1]);
+
+    connectionGroup.each(function (c) {
+      // Should probably use getTotalLength / getPointAtLength, but so far, I've failed
+      // to make them work.
+
+      // Switch to local coordinate space for calculations of label position.
+      const source = projection([
+        alldata.servicePointsByName.get(c.source)!.wgs84[0],
+        alldata.servicePointsByName.get(c.source)!.wgs84[1],
+      ])!;
+      const target = projection([
+        alldata.servicePointsByName.get(c.target)!.wgs84[0],
+        alldata.servicePointsByName.get(c.target)!.wgs84[1],
+      ])!;
+
+      const mid = [
+        (source[0] + target[0]) / 2,
+        (source[1] + target[1]) / 2,
+      ];
+
+      // Get a unit vector, so we can move the label orthogonally of the line.
+      const len = Math.sqrt(Math.pow(target[0] - source[0], 2) + Math.pow(target[1] - source[1], 2));
+      const unit = [
+        (target[0] - source[0]) / len,
+        (target[1] - source[1]) / len,
+      ]
+      // Normal is (-y, x) in a 2D space.
+      const normal = [-unit[1], unit[0]];
+      const dist = 0;
+      const position = [
+        mid[0] + normal[0] * dist,
+        mid[1] + normal[1] * dist,
+      ]
+
+      d3.select(this).append("text")
+        .attr("class", "city-label")
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("x", position[0])
+        .attr("y", position[1])
+        .text(c.time);
+    });
 
     // Draw cities
     const cityGroup = svg.selectAll(".city-group")
