@@ -1,6 +1,6 @@
 import * as datatypes from "./datatypes";
-import rawmapdata from "./swiss-maps.json";
-import rawservicepoints from "./servicepoints.json";
+import rawmapdata from "./extdata/swiss-maps.json";
+import rawservicepoints from "./extdata/servicepoints.json";
 
 export const mapdata = (rawmapdata as any) as datatypes.SwissMap;  // rawmapdata has number[] instead [number, number].
 export const servicePointsByName = new Map<string, datatypes.ServicePoint>();

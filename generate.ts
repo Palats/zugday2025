@@ -35,4 +35,4 @@ for (const r of records) {
 
 console.log(`Total: ${records.length}, Selected: ${servicePoints.length}`);
 
-await fs.writeFile("src/servicepoints.json", JSON.stringify(servicePoints));
+await fs.writeFile("src/extdata/servicepoints.json", JSON.stringify(servicePoints));
