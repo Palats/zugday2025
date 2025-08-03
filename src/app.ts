@@ -29,6 +29,10 @@ export class ZGApp extends LitElement {
       .attr("preserveAspectRatio", "xMidYMid meet")
       .attr("viewBox", `0 0 ${width} ${height}`);
 
+    svg.call(d3.zoom<SVGSVGElement, undefined>().on('zoom', e => {
+      svg.attr("transform", e.transform)
+    }));
+
     // Draw Switzerland
     const cantons = topojson.feature(alldata.mapdata, alldata.mapdata.objects.cantons);
     const country = topojson.feature(alldata.mapdata, alldata.mapdata.objects.country);
@@ -175,6 +179,7 @@ export class ZGApp extends LitElement {
         fill: #333;
         text-anchor: middle;
         text-shadow: 1px 1px 2px white;
+        user-select: none;
     }
   `
 }
