@@ -6,16 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate": "tsx generate.ts"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",
     "@types/topojson": "^3.2.6",
+    "csv-parse": "^6.1.0",
     "d3": "^7.9.0",
+    "jszip": "^3.10.1",
     "lit": "^3.3.0",
     "topojson-client": "^3.1.0"
   },
   "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsx": "^4.20.3",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }
