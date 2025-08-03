@@ -106,7 +106,7 @@ export class ZGApp extends LitElement {
         .attr("dominant-baseline", "middle")
         .attr("x", position[0])
         .attr("y", position[1])
-        .text(c.time);
+        .text(c.time_minutes);
     });
 
     // Draw cities

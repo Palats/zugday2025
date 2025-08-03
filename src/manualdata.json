@@ -1,0 +1,254 @@
+{
+    "connections": [
+        {
+            "source": "Kreuzlingen",
+            "target": "Schaffhausen",
+            "time_minutes": 60
+        },
+        {
+            "source": "Kreuzlingen",
+            "target": "Zürich HB",
+            "time_minutes": 70
+        },
+        {
+            "source": "Kreuzlingen",
+            "target": "St. Gallen",
+            "time_minutes": 45
+        },
+        {
+            "source": "Gossau SG",
+            "target": "St. Gallen",
+            "time_minutes": 10
+        },
+        {
+            "source": "Herisau",
+            "target": "St. Gallen",
+            "time_minutes": 10
+        },
+        {
+            "source": "Gossau SG",
+            "target": "Herisau",
+            "time_minutes": 10
+        },
+        {
+            "source": "Sargans",
+            "target": "St. Gallen",
+            "time_minutes": 60
+        },
+        {
+            "source": "Sargans",
+            "target": "Chur",
+            "time_minutes": 20
+        },
+        {
+            "source": "Gossau SG",
+            "target": "Zürich HB",
+            "time_minutes": 50
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Schaffhausen",
+            "time_minutes": 35
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Sargans",
+            "time_minutes": 55
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Basel SBB",
+            "time_minutes": 55
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Lenzburg",
+            "time_minutes": 20
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Olten",
+            "time_minutes": 30
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Zug",
+            "time_minutes": 25
+        },
+        {
+            "source": "Zürich HB",
+            "target": "Altdorf UR",
+            "time_minutes": 65
+        },
+        {
+            "source": "Olten",
+            "target": "Lenzburg",
+            "time_minutes": 20
+        },
+        {
+            "source": "Olten",
+            "target": "Solothurn",
+            "time_minutes": 25
+        },
+        {
+            "source": "Olten",
+            "target": "Luzern",
+            "time_minutes": 35
+        },
+        {
+            "source": "Luzern",
+            "target": "Zug",
+            "time_minutes": 20
+        },
+        {
+            "source": "Luzern",
+            "target": "Sarnen",
+            "time_minutes": 20
+        },
+        {
+            "source": "Luzern",
+            "target": "Altdorf UR",
+            "time_minutes": 50
+        },
+        {
+            "source": "Zug",
+            "target": "Altdorf UR",
+            "time_minutes": 50
+        },
+        {
+            "source": "Andermatt",
+            "target": "Altdorf UR",
+            "time_minutes": 50
+        },
+        {
+            "source": "Locarno",
+            "target": "Altdorf UR",
+            "time_minutes": 65
+        },
+        {
+            "source": "Bern",
+            "target": "Olten",
+            "time_minutes": 30
+        },
+        {
+            "source": "Bern",
+            "target": "Solothurn",
+            "time_minutes": 35
+        },
+        {
+            "source": "Bern",
+            "target": "Interlaken Ost",
+            "time_minutes": 50
+        },
+        {
+            "source": "Bern",
+            "target": "Visp",
+            "time_minutes": 60
+        },
+        {
+            "source": "Bern",
+            "target": "Fribourg/Freiburg",
+            "time_minutes": 25
+        },
+        {
+            "source": "Bern",
+            "target": "Murten/Morat",
+            "time_minutes": 40
+        },
+        {
+            "source": "Bern",
+            "target": "Neuchâtel",
+            "time_minutes": 35
+        },
+        {
+            "source": "Basel SBB",
+            "target": "Delémont",
+            "time_minutes": 60
+        },
+        {
+            "source": "Basel SBB",
+            "target": "Biel/Bienne",
+            "time_minutes": 30
+        },
+        {
+            "source": "Biel/Bienne",
+            "target": "Delémont",
+            "time_minutes": 30
+        },
+        {
+            "source": "Biel/Bienne",
+            "target": "Solothurn",
+            "time_minutes": 15
+        },
+        {
+            "source": "Biel/Bienne",
+            "target": "Neuchâtel",
+            "time_minutes": 20
+        },
+        {
+            "source": "Andermatt",
+            "target": "Brig",
+            "time_minutes": 120
+        },
+        {
+            "source": "Brig",
+            "target": "Visp",
+            "time_minutes": 10
+        },
+        {
+            "source": "Martigny",
+            "target": "Visp",
+            "time_minutes": 40
+        },
+        {
+            "source": "Martigny",
+            "target": "Montreux",
+            "time_minutes": 35
+        },
+        {
+            "source": "Montreux",
+            "target": "Chamby",
+            "time_minutes": 30
+        },
+        {
+            "source": "Montreux",
+            "target": "Vevey",
+            "time_minutes": 5
+        },
+        {
+            "source": "Neuchâtel",
+            "target": "Murten/Morat",
+            "time_minutes": 25
+        },
+        {
+            "source": "Murten/Morat",
+            "target": "Fribourg/Freiburg",
+            "time_minutes": 35
+        },
+        {
+            "source": "Lausanne",
+            "target": "Fribourg/Freiburg",
+            "time_minutes": 45
+        },
+        {
+            "source": "Lausanne",
+            "target": "Vevey",
+            "time_minutes": 15
+        },
+        {
+            "source": "Lausanne",
+            "target": "Genève",
+            "time_minutes": 45
+        },
+        {
+            "source": "Lausanne",
+            "target": "Vallorbe",
+            "time_minutes": 45
+        },
+        {
+            "source": "Lausanne",
+            "target": "Neuchâtel",
+            "time_minutes": 50
+        }
+    ]
+}
