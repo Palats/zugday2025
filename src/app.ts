@@ -40,17 +40,19 @@ export class ZGApp extends LitElement {
     // Set the zoomable property on the full SVG element so empty zones can also
     // be targets for zooming.
     this.svg.call(d3.zoom<SVGSVGElement, undefined>()
-      .on('zoom', (e: d3zoom.D3ZoomEvent<SVGSVGElement, undefined>) => {
-        if (!this.svg || !this.mapcontainer || !this.featurescontainer) {
-          console.error("not ready for zoom");
-          return;
-        }
+      .on('zoom', (e: d3zoom.D3ZoomEvent<SVGSVGElement, undefined>) => this.onZoom(e)));
+  }
 
-        this.scale = e.transform.k;
-        const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
-        this.mapcontainer.attr("transform", e.transform.toString());
-        this.featurescontainer.attr("transform", panning.toString());
-      }));
+  onZoom(e: d3zoom.D3ZoomEvent<SVGSVGElement, undefined>) {
+    if (!this.svg || !this.mapcontainer || !this.featurescontainer) {
+      console.error("not ready for zoom");
+      return;
+    }
+
+    this.scale = e.transform.k;
+    const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
+    this.mapcontainer.attr("transform", e.transform.toString());
+    this.featurescontainer.attr("transform", panning.toString());
   }
 
   render() {
