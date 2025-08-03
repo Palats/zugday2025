@@ -8,16 +8,12 @@ import * as alldata from "./alldata";
 alldata.prepareData();
 
 /**
- * The main page
+ * Everything.
  */
 @customElement("zg-app")
 export class ZGApp extends LitElement {
   @property({ type: Number })
   scale = 1;
-
-  // Basic dimensions of the data in SVG
-  private width = 650;
-  private height = 450;
 
   @property({ type: Object })
   private svg?: d3.Selection<SVGSVGElement, undefined, null, undefined>;
@@ -28,6 +24,16 @@ export class ZGApp extends LitElement {
   @property({ type: Object })
   private featurescontainer?: d3.Selection<SVGGElement, undefined, null, undefined>;
 
+  // Basic dimensions of the data in SVG
+  private width = 650;
+  private height = 450;
+
+  // map projection is always the same - we rely on transform for zoom/panning.
+  private mapProjection = d3.geoMercator()
+    .scale(8000) // Adjust the scale to fit Switzerland
+    .center([8.2275, 46.8182]) // Center on Switzerland's coordinates
+    .translate([this.width / 2, this.height / 2]);
+
   firstUpdated() {
     // Create the SVG container.
     this.svg = d3.create("svg")
@@ -36,6 +42,9 @@ export class ZGApp extends LitElement {
 
     this.mapcontainer = this.svg.append("g");
     this.featurescontainer = this.svg.append("g");
+
+    // Map is generated only once - it is just scaled and panned with transform.
+    this.buildMap();
 
     // Set the zoomable property on the full SVG element so empty zones can also
     // be targets for zooming.
@@ -49,20 +58,6 @@ export class ZGApp extends LitElement {
       return;
     }
 
-    this.scale = e.transform.k;
-    const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
-    this.mapcontainer.attr("transform", e.transform.toString());
-    this.featurescontainer.attr("transform", panning.toString());
-  }
-
-  render() {
-    if (!this.svg || !this.mapcontainer || !this.featurescontainer) {
-      return html`preparing`;
-    }
-
-    this.mapcontainer.selectChildren().remove();
-    this.featurescontainer.selectChildren().remove();
-
     // Objective is to:
     //  - Avoid redrawing the boundaries. I.e., rely on on transform to pan/zoom.
     //  - Keep features at constant screen size.
@@ -70,22 +65,29 @@ export class ZGApp extends LitElement {
     //     - Need reprojecting when zooming
     //     - Can still use panning through transform
 
-    // map projection is always the same - we rely on transform.
-    const mapProjection = d3.geoMercator()
-      .scale(8000) // Adjust the scale to fit Switzerland
-      .center([8.2275, 46.8182]) // Center on Switzerland's coordinates
-      .translate([this.width / 2, this.height / 2]);;
-    // features projection is scaled manually, while panning relies on transform.
-    const featuresProjection = d3.geoMercator()
-      .scale(this.scale * mapProjection.scale())
-      .center([mapProjection.center()[0], mapProjection.center()[1]])
-      .translate([
-        this.scale * mapProjection.translate()[0],
-        this.scale * mapProjection.translate()[1],
-      ]);
+    this.scale = e.transform.k;
+    const panning = new d3zoom.ZoomTransform(1, e.transform.x, e.transform.y);
+    this.mapcontainer.attr("transform", e.transform.toString());
+    this.featurescontainer.attr("transform", panning.toString());
+  }
+
+  render() {
+    if (!this.svg) {
+      return html`preparing`;
+    }
+
+    // Features need to be re-rendered when scale is changing, as coordinates are moving around.
+    this.buildFeatures();
+
+    return html`${this.svg.node()}`;
+  }
+
+  buildMap() {
+    if (!this.mapcontainer) { return; }
+    this.mapcontainer.selectChildren().remove();
 
     // Create a D3 path generator
-    const path = d3.geoPath().projection(mapProjection);
+    const path = d3.geoPath().projection(this.mapProjection);
 
     // Draw Switzerland
     const cantons = topojson.feature(alldata.mapdata, alldata.mapdata.objects.cantons);
@@ -105,6 +107,22 @@ export class ZGApp extends LitElement {
       .datum(topojson.feature(alldata.mapdata, alldata.mapdata.objects.lakes))
       .attr("class", "lake")
       .attr("d", path);
+
+  }
+
+  buildFeatures() {
+    if (!this.featurescontainer) { return; }
+    this.featurescontainer.selectChildren().remove();
+
+    // features projection is scaled manually, while panning relies on transform.
+    const featuresProjection = d3.geoMercator()
+      .scale(this.scale * this.mapProjection.scale())
+      .center([this.mapProjection.center()[0], this.mapProjection.center()[1]])
+      .translate([
+        this.scale * this.mapProjection.translate()[0],
+        this.scale * this.mapProjection.translate()[1],
+      ]);
+
 
     // Draw connections
     const connectionGroup = this.featurescontainer.selectAll(".connection-group")
@@ -179,9 +197,6 @@ export class ZGApp extends LitElement {
       .attr("x", sp => featuresProjection(sp.wgs84)?.[0] || 0)
       .attr("y", sp => (featuresProjection(sp.wgs84)?.[1] || 0) - 10)
       .text(sp => sp.designationOfficial);
-
-
-    return html`${this.svg.node()}`;
   }
 
   static styles = css`
