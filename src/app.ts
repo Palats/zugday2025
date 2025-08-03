@@ -138,7 +138,8 @@ export class ZGApp extends LitElement {
       .attr("x1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
       .attr("y1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
       .attr("x2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
-      .attr("y2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![1]);
+      .attr("y2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![1])
+      .style("stroke-width", c => 1 + 2 * c.time_minutes / 120);
 
     connectionGroup.each(function (c) {
       // Should probably use getTotalLength / getPointAtLength, but so far, I've failed
