@@ -101,7 +101,7 @@ export class ZGApp extends LitElement {
       ]
 
       d3.select(this).append("text")
-        .attr("class", "city-label")
+        .attr("class", "connection-label")
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "middle")
         .attr("x", position[0])
@@ -148,7 +148,7 @@ export class ZGApp extends LitElement {
 
     .country {
       fill: #f7f7f7;
-      stroke: #5e6164;
+      stroke: #000000;
       stroke-width: 1.5;
     }
 
@@ -180,6 +180,15 @@ export class ZGApp extends LitElement {
         font-size: 10px;
         font-weight: bold;
         fill: #333;
+        text-anchor: middle;
+        text-shadow: 1px 1px 2px white;
+        user-select: none;
+    }
+
+    .connection-label {
+        font-size: 8px;
+        font-weight: bold;
+        fill: #666666;
         text-anchor: middle;
         text-shadow: 1px 1px 2px white;
         user-select: none;
