@@ -8,25 +8,18 @@ export const servicePointsByName = new Map<string, datatypes.ServicePoint>();
 export const relevantServicePoints: datatypes.ServicePoint[] = [];
 
 export const connections: datatypes.Connection[] = [
-    { source: "Bern", target: "Zürich HB" },
-    { source: "Bern", target: "Genève" },
-    { source: "Zürich HB", target: "Lugano" },
-    { source: "Basel SBB", target: "Zürich HB" },
-];
-
-const foobar = [
-    { source: "Kreuzlingen", target: "Schaffhouse", time: 60 },
+    { source: "Kreuzlingen", target: "Schaffhausen", time: 60 },
     { source: "Kreuzlingen", target: "Zürich HB", time: 70 },
-    { source: "Kreuzlingen", target: "Saint Gallen", time: 45 },
-    { source: "Gossau", target: "Saint Gallen", time: 10 },
-    { source: "Herisau", target: "Saint Gallen", time: 10 },
-    { source: "Gossau", target: "Herisau", time: 10 },
-    { source: "Sargans", target: "Saint Gallen", time: 60 },
+    { source: "Kreuzlingen", target: "St. Gallen", time: 45 },
+    { source: "Gossau SG", target: "St. Gallen", time: 10 },
+    { source: "Herisau", target: "St. Gallen", time: 10 },
+    { source: "Gossau SG", target: "Herisau", time: 10 },
+    { source: "Sargans", target: "St. Gallen", time: 60 },
     { source: "Sargans", target: "Chur", time: 20 },
-    { source: "Gossau", target: "Zürich HB", time: 50 },
-    { source: "Zürich HB", target: "Schaffhouse", time: 35 },
+    { source: "Gossau SG", target: "Zürich HB", time: 50 },
+    { source: "Zürich HB", target: "Schaffhausen", time: 35 },
     { source: "Zürich HB", target: "Sargans", time: 55 },
-    { source: "Zürich HB", target: "Basel", time: 55 },
+    { source: "Zürich HB", target: "Basel SBB", time: 55 },
     { source: "Zürich HB", target: "Lenzburg", time: 20 },
     { source: "Zürich HB", target: "Olten", time: 30 },
     { source: "Zürich HB", target: "Zug", time: 25 },
@@ -42,29 +35,29 @@ const foobar = [
     { source: "Locarno", target: "Altdorf UR", time: 65 },
     { source: "Bern", target: "Olten", time: 30 },
     { source: "Bern", target: "Solothurn", time: 35 },
-    { source: "Bern", target: "Interlaken", time: 50 },
-    { source: "Bern", target: "Viege", time: 60 },
-    { source: "Bern", target: "Fribourg", time: 25 },
-    { source: "Bern", target: "Morat", time: 40 },
-    { source: "Bern", target: "Neuchatel", time: 35 },
-    { source: "Basel", target: "Delémont", time: 60 },
-    { source: "Basel", target: "Bienne", time: 30 },
-    { source: "Bienne", target: "Delémont", time: 30 },
-    { source: "Bienne", target: "Solothurn", time: 15 },
-    { source: "Bienne", target: "Neuchatel", time: 20 },
-    { source: "Andermatt", target: "Brigue", time: 120 },
-    { source: "Brigue", target: "Viège", time: 10 },
-    { source: "Martigny", target: "Viège", time: 40 },
+    { source: "Bern", target: "Interlaken Ost", time: 50 },
+    { source: "Bern", target: "Visp", time: 60 },
+    { source: "Bern", target: "Fribourg/Freiburg", time: 25 },
+    { source: "Bern", target: "Murten/Morat", time: 40 },
+    { source: "Bern", target: "Neuchâtel", time: 35 },
+    { source: "Basel SBB", target: "Delémont", time: 60 },
+    { source: "Basel SBB", target: "Biel/Bienne", time: 30 },
+    { source: "Biel/Bienne", target: "Delémont", time: 30 },
+    { source: "Biel/Bienne", target: "Solothurn", time: 15 },
+    { source: "Biel/Bienne", target: "Neuchâtel", time: 20 },
+    { source: "Andermatt", target: "Brig", time: 120 },
+    { source: "Brig", target: "Visp", time: 10 },
+    { source: "Martigny", target: "Visp", time: 40 },
     { source: "Martigny", target: "Montreux", time: 35 },
     { source: "Montreux", target: "Chamby", time: 30 },
     { source: "Montreux", target: "Vevey", time: 5 },
-    { source: "Neuchatel", target: "Morat", time: 25 },
-    { source: "Morat", target: "Fribourg", time: 35 },
-    { source: "Lausanne", target: "Fribourg", time: 45 },
+    { source: "Neuchâtel", target: "Murten/Morat", time: 25 },
+    { source: "Murten/Morat", target: "Fribourg/Freiburg", time: 35 },
+    { source: "Lausanne", target: "Fribourg/Freiburg", time: 45 },
     { source: "Lausanne", target: "Vevey", time: 15 },
     { source: "Lausanne", target: "Genève", time: 45 },
     { source: "Lausanne", target: "Vallorbe", time: 45 },
-    { source: "Lausanne", target: "Neuchatel", time: 50 },
+    { source: "Lausanne", target: "Neuchâtel", time: 50 },
 ]
 
 // Preprocess the raw data. This must be called to have access to content,
@@ -79,7 +72,7 @@ export function prepareData() {
         }
         servicePointsByName.set(sp.designationOfficial, sp);
         // Print list of some service points, useful to check some names.
-        if (/Lugano.*/.test(sp.designationOfficial) && sp.meansOfTransport == "TRAIN") { console.log(sp.designationOfficial, sp.meansOfTransport); }
+        if (/Gall.*/.test(sp.designationOfficial) && sp.meansOfTransport == "TRAIN") { console.log(sp.designationOfficial, sp.meansOfTransport); }
     }
 
     // List service points found in connections.

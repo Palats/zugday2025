@@ -25,4 +25,6 @@ export type ServicePoint = Pick<FullServicePoint, "designationOfficial" | "means
 export type Connection = {
     source: string;
     target: string;
+    // Connection time in minutes
+    time: number;
 }
