@@ -17,19 +17,22 @@ const csvdata = await zipentry.async("string");
 
 const records = csv.parse(csvdata, { delimiter: ";", columns: true }) as datatypes.FullServicePoint[];
 
-const stations: datatypes.ServicePoint[] = [];
+const servicePoints: datatypes.ServicePoint[] = [];
 for (const r of records) {
     if (r.status != "VALIDATED") { continue; }
     if (!r.hasGeolocation) { continue; }
     if (r.meansOfTransport == "UNKNOWN" || r.meansOfTransport == "ELEVATOR" || r.meansOfTransport == "") { continue; }
 
-    stations.push({
+    // For now, only have train stations to reduce size.
+    if (r.meansOfTransport != "TRAIN") { continue; }
+
+    servicePoints.push({
         designationOfficial: r.designationOfficial,
         meansOfTransport: r.meansOfTransport,
         wgs84: [parseFloat(r.wgs84East), parseFloat(r.wgs84North)],
     });
 }
 
-console.log(`Total: ${records.length}, Selected: ${stations.length}`);
+console.log(`Total: ${records.length}, Selected: ${servicePoints.length}`);
 
-await fs.writeFile("src/servicepoints.json", JSON.stringify(stations));
+await fs.writeFile("src/servicepoints.json", JSON.stringify(servicePoints));
