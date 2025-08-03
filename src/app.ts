@@ -1,14 +1,22 @@
-import { LitElement, css, html } from 'lit'
-import { customElement } from 'lit/decorators.js'
-import * as d3 from 'd3';
-import * as topojson from 'topojson-client';
+import { LitElement, css, html } from "lit"
+import { customElement } from "lit/decorators.js"
+import * as d3 from "d3";
+import * as topojson from "topojson-client";
+import * as datatypes from "./datatypes";
 
-import rawmapdata from './swiss-maps.json';
+import rawmapdata from "./swiss-maps.json";
 const mapdata = (rawmapdata as any) as SwissMap;  // XXX
 
-interface City {
-  name: string;
-  coords: [number, number]; // [longitude, latitude]
+import rawservicepoints from "./servicepoints.json";
+const servicePoints = rawservicepoints as datatypes.ServicePoint[];
+
+const servicePointsByName = new Map<string, datatypes.ServicePoint>();
+for (const sp of servicePoints) {
+  if (servicePointsByName.has(sp.designationOfficial)) {
+    console.log("Duplicate:", sp.designationOfficial, sp.meansOfTransport);
+  }
+  servicePointsByName.set(sp.designationOfficial, sp);
+  if (/Lugano.*/.test(sp.designationOfficial) && sp.meansOfTransport == "TRAIN") { console.log(sp.designationOfficial, sp.meansOfTransport); }
 }
 
 // Define a type for our connection data
@@ -18,20 +26,29 @@ interface Connection {
 }
 
 // --- Data ---
-const cities: City[] = [
-  { name: "Bern", coords: [7.4474, 46.9480] },
-  { name: "Zurich", coords: [8.5417, 47.3769] },
-  { name: "Geneva", coords: [6.1432, 46.2044] },
-  { name: "Lugano", coords: [8.9538, 46.0037] },
-  { name: "Basel", coords: [7.5886, 47.5596] },
+const connections: Connection[] = [
+  { source: "Bern", target: "Zürich HB" },
+  { source: "Bern", target: "Genève" },
+  { source: "Zürich HB", target: "Lugano" },
+  { source: "Basel SBB", target: "Zürich HB" },
 ];
 
-const connections: Connection[] = [
-  { source: "Bern", target: "Zurich" },
-  { source: "Bern", target: "Geneva" },
-  { source: "Zurich", target: "Lugano" },
-  { source: "Basel", target: "Zurich" },
-];
+const relevantServicePoints: datatypes.ServicePoint[] = [];
+
+const seen = new Set<string>();
+for (const c of connections) {
+  if (!servicePointsByName.has(c.source)) { console.error(`Missing connection source ${c.source}`); }
+  if (!servicePointsByName.has(c.target)) { console.error(`Missing connection source ${c.target}`); }
+
+  if (!seen.has(c.source)) {
+    relevantServicePoints.push(servicePointsByName.get(c.source)!);
+    seen.add(c.source);
+  }
+  if (!seen.has(c.target)) {
+    relevantServicePoints.push(servicePointsByName.get(c.target)!);
+    seen.add(c.target);
+  }
+}
 
 interface SwissMap extends TopoJSON.Topology {
   objects: {
@@ -44,7 +61,7 @@ interface SwissMap extends TopoJSON.Topology {
 /**
  * The main page
  */
-@customElement('zg-app')
+@customElement("zg-app")
 export class ZGApp extends LitElement {
   render() {
     const width = 800;
@@ -83,41 +100,36 @@ export class ZGApp extends LitElement {
       .attr("class", "lake")
       .attr("d", path);
 
-    const cityCoords = new Map<string, [number, number]>();
-    cities.forEach(city => {
-      cityCoords.set(city.name, city.coords);
-    });
-
-    // Draw connectins
+    // Draw connections
     svg.selectAll(".connection-line")
       .data(connections)
       .enter()
       .append("line")
       .attr("class", "connection-line")
-      .attr("x1", d => projection(cityCoords.get(d.source) as [number, number])?.[0] || 0)
-      .attr("y1", d => projection(cityCoords.get(d.source) as [number, number])?.[1] || 0)
-      .attr("x2", d => projection(cityCoords.get(d.target) as [number, number])?.[0] || 0)
-      .attr("y2", d => projection(cityCoords.get(d.target) as [number, number])?.[1] || 0);
+      .attr("x1", d => projection(servicePointsByName.get(d.source)!.wgs84)![0])
+      .attr("y1", d => projection(servicePointsByName.get(d.source)!.wgs84)![1])
+      .attr("x2", d => projection(servicePointsByName.get(d.target)!.wgs84)![0])
+      .attr("y2", d => projection(servicePointsByName.get(d.target)!.wgs84)![1]);
 
     // Draw cities
     const cityGroup = svg.selectAll(".city-group")
-      .data(cities)
+      .data(relevantServicePoints)
       .enter()
       .append("g")
       .attr("class", "city-group");
 
     cityGroup.append("circle")
       .attr("class", "city")
-      .attr("cx", d => projection(d.coords)?.[0] || 0)
-      .attr("cy", d => projection(d.coords)?.[1] || 0)
+      .attr("cx", sp => projection(sp.wgs84)?.[0] || 0)
+      .attr("cy", sp => projection(sp.wgs84)?.[1] || 0)
       .attr("r", 5);
 
     // City label
     cityGroup.append("text")
       .attr("class", "city-label")
-      .attr("x", d => projection(d.coords)?.[0] || 0)
-      .attr("y", d => (projection(d.coords)?.[1] || 0) - 10)
-      .text(d => d.name);
+      .attr("x", sp => projection(sp.wgs84)?.[0] || 0)
+      .attr("y", sp => (projection(sp.wgs84)?.[1] || 0) - 10)
+      .text(sp => sp.designationOfficial);
 
 
     return html`${svg.node()}`;
@@ -178,6 +190,6 @@ export class ZGApp extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'zg-app': ZGApp
+    "zg-app": ZGApp
   }
 }

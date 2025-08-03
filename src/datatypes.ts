@@ -3,13 +3,13 @@
 export type FullServicePoint = {
     designationOfficial: string,
     hasGeolocation: boolean,
-    meansOfTransport: "TRAIN" | "BUS" | "TRAM" | "BOAT" | "CABLE_CAR" | "CHAIRLIFT" | "CABLE_RAILWAY" | "RACK_RAILWAY" | "METRO" | "ELEVATOR" | "UNKNOWN",
+    meansOfTransport: "TRAIN" | "BUS" | "TRAM" | "BOAT" | "CABLE_CAR" | "CHAIRLIFT" | "CABLE_RAILWAY" | "RACK_RAILWAY" | "METRO" | "ELEVATOR" | "UNKNOWN" | "",
     wgs84East: string,
     wgs84North: string,
     status: "DRAFT" | "VALIDATED" | "IN_REVIEW" | "WITHDRAWN" | "REVOKED",
 };
 
 export type ServicePoint = Pick<FullServicePoint, "designationOfficial" | "meansOfTransport"> & {
-    wgs84EastNumber: number,
-    wgs84NorthNumber: number,
+    // East, North
+    wgs84: [number, number],
 };

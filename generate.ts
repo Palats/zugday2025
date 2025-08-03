@@ -21,13 +21,12 @@ const stations: datatypes.ServicePoint[] = [];
 for (const r of records) {
     if (r.status != "VALIDATED") { continue; }
     if (!r.hasGeolocation) { continue; }
-    if (r.meansOfTransport == "UNKNOWN" || r.meansOfTransport == "ELEVATOR") { continue; }
+    if (r.meansOfTransport == "UNKNOWN" || r.meansOfTransport == "ELEVATOR" || r.meansOfTransport == "") { continue; }
 
     stations.push({
         designationOfficial: r.designationOfficial,
         meansOfTransport: r.meansOfTransport,
-        wgs84EastNumber: parseFloat(r.wgs84East),
-        wgs84NorthNumber: parseFloat(r.wgs84North),
+        wgs84: [parseFloat(r.wgs84East), parseFloat(r.wgs84North)],
     });
 }
 
