@@ -17,12 +17,12 @@ export function prepareData() {
 
     // Prepare list of service points by name.
     for (const sp of servicePoints) {
-        if (servicePointsByName.has(sp.designationOfficial)) {
-            console.log("Duplicate:", sp.designationOfficial, sp.meansOfTransport);
+        if (servicePointsByName.has(sp.name)) {
+            console.log("Duplicate:", sp.name, sp.transports);
         }
-        servicePointsByName.set(sp.designationOfficial, sp);
+        servicePointsByName.set(sp.name, sp);
         // Print list of some service points, useful to check some names.
-        if (/Gall.*/.test(sp.designationOfficial) && sp.meansOfTransport == "TRAIN") { console.log(sp.designationOfficial, sp.meansOfTransport); }
+        if (/Gall.*/.test(sp.name) && sp.transports.includes("TRAIN")) { console.log(sp.name, sp.transports); }
     }
 
     // List service points found in connections.

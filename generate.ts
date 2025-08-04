@@ -21,19 +21,22 @@ const records = csv.parse(csvdata, { delimiter: ";", columns: true }) as datatyp
 const servicePoints: datatypes.ServicePoint[] = [];
 const countByType = new Map<datatypes.MeansOfTransport, number>();
 for (const r of records) {
+    // Extract list of means of transports.
+    const means = r.meansOfTransport.split("|").map(s => s.trim()).filter(s => s.length > 0) as datatypes.MeansOfTransport[];
+    for (const m of means) {
+        countByType.set(m, (countByType.get(m) ?? 0) + 1);
+    }
+
     if (r.status != "VALIDATED") { continue; }
     if (!r.hasGeolocation) { continue; }
-
-    countByType.set(r.meansOfTransport, (countByType.get(r.meansOfTransport) ?? 0) + 1);
-
-    if (r.meansOfTransport == "UNKNOWN" || r.meansOfTransport == "ELEVATOR" || r.meansOfTransport == "") { continue; }
+    if (means.length === 0) { continue; }
 
     // For now, only have train stations to reduce size.
     if (r.meansOfTransport != "TRAIN") { continue; }
 
     servicePoints.push({
-        designationOfficial: r.designationOfficial,
-        meansOfTransport: r.meansOfTransport,
+        name: r.designationOfficial,
+        transports: means,
         wgs84: [parseFloat(r.wgs84East), parseFloat(r.wgs84North)],
     });
 }

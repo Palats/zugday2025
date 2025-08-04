@@ -201,7 +201,7 @@ export class ZGApp extends LitElement {
       .attr("class", "city-label")
       .attr("x", sp => featuresProjection(sp.wgs84)?.[0] || 0)
       .attr("y", sp => (featuresProjection(sp.wgs84)?.[1] || 0) - 10)
-      .text(sp => sp.designationOfficial);
+      .text(sp => sp.name);
   }
 
   static styles = css`
