@@ -2,6 +2,7 @@ import * as datatypes from "./datatypes";
 import rawmapdata from "./extdata/swiss-maps.json";
 import rawservicepoints from "./extdata/servicepoints.json";
 import rawconnections from "./connections.json";
+import rawobjectives from "./objectives.json";
 
 export const mapdata = (rawmapdata as any) as datatypes.SwissMap;  // rawmapdata has number[] instead [number, number].
 export const servicePointsByName = new Map<string, datatypes.ServicePoint>();
@@ -9,6 +10,7 @@ export const servicePointsByName = new Map<string, datatypes.ServicePoint>();
 export const relevantServicePoints: datatypes.ServicePoint[] = [];
 
 export const connections = (rawconnections as datatypes.ConnectionsJSON).connections;
+export const objectives = rawobjectives as datatypes.ObjectivesJSON;
 
 // Preprocess the raw data. This must be called to have access to content,
 // and can be called in main loading scripts.

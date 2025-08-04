@@ -1,16 +1,34 @@
 {
-    "finalStop": "Bern, Wankdorf",
-    "extraStop": "Sargans",
+    "final": {
+        "name": "Arrivée",
+        "points": 0,
+        "stop": "Bern Wankdorf",
+        "trainStop": "Bern",
+        "timeStopMinutes": 0,
+        "timeTrainStopMinutes": 7
+    },
+    "extras": [
+        {
+            "name": "Sargans",
+            "points": 15,
+            "stop": "Sargans",
+            "trainStop": "Sargans",
+            "timeStopMinutes": 0,
+            "timeTrainStopMinutes": 0
+        }
+    ],
     "museums": [
         {
             "name": "Musée bernois d'histoire",
+            "points": 1,
             "stop": "Bern, Helvetiaplatz",
             "trainStop": "Bern",
-            "timeStop": 1,
-            "timeTrainStop": 5
+            "timeStopMinutes": 1,
+            "timeTrainStopMinutes": 5
         },
         {
             "name": "Musée de la garde suisse",
+            "points": 1,
             "stop": "Brig",
             "trainStop": "Brig",
             "timeStop": 15,
@@ -18,6 +36,7 @@
         },
         {
             "name": "Talmuseum Ursern",
+            "points": 1,
             "stop": "Andermatt",
             "trainStop": "Andermatt",
             "timeStop": 10,
@@ -25,6 +44,7 @@
         },
         {
             "name": "Kaeserberg",
+            "points": 1,
             "stop": "Granges-Paccot, rte du Coteau",
             "trainStop": "Fribourg",
             "timeStop": 1,
@@ -32,6 +52,7 @@
         },
         {
             "name": "Urner Mineralien-Museum",
+            "points": 1,
             "stop": "Seedorf UR, Schloss A Pro",
             "trainStop": "Altdorf UR",
             "timeStop": 1,
@@ -39,6 +60,7 @@
         },
         {
             "name": "NMB Nouveau Musée Bienne",
+            "points": 1,
             "stop": "Biel/Bienne, Museen/Musées",
             "trainStop": "Biel/Bienne",
             "timeStop": 3,
@@ -46,6 +68,7 @@
         },
         {
             "name": "Kunsthaus Interlaken",
+            "points": 1,
             "stop": "Interlaken, Jungfraustrasse",
             "trainStop": "Interlaken West",
             "timeStop": 3,
@@ -53,6 +76,7 @@
         },
         {
             "name": "Basler Papiermühle",
+            "points": 1,
             "stop": "Basel, St. Alban-Tor",
             "trainStop": "Basel SBB",
             "timeStop": 5,
@@ -60,6 +84,7 @@
         },
         {
             "name": "Rätisches Museum",
+            "points": 1,
             "stop": "Chur, Malteser",
             "trainStop": "Chur",
             "timeStop": 6,
@@ -67,6 +92,7 @@
         },
         {
             "name": "Monte Verità",
+            "points": 1,
             "stop": "Ascona, Centro",
             "trainStop": "Locarno",
             "timeStop": 23,
@@ -74,6 +100,7 @@
         },
         {
             "name": "Musée du fer et du chemin de fer",
+            "points": 1,
             "stop": "Vallorbe, poste",
             "trainStop": "Vallorbe",
             "timeStop": 2,
@@ -81,6 +108,7 @@
         },
         {
             "name": "Chemin de fer-musée Blonay-Chamby",
+            "points": 1,
             "stop": "Chamby-Musée",
             "trainStop": "Chamby",
             "timeStop": 1,
@@ -88,6 +116,7 @@
         },
         {
             "name": "Bodensee Planetarium und Sternwarte",
+            "points": 1,
             "stop": "Kreuzlingen Bernrain",
             "trainStop": "Kreuzlingen",
             "timeStop": 8,
@@ -95,6 +124,7 @@
         },
         {
             "name": "Barryland",
+            "points": 1,
             "stop": "Martigny, Fond. Gianadda",
             "trainStop": "Martigny",
             "timeStop": 7,
@@ -102,6 +132,7 @@
         },
         {
             "name": "Panorama Bourbaki",
+            "points": 1,
             "stop": "Luzern, Löwenplatz",
             "trainStop": "Luzern",
             "timeStop": 1,
@@ -109,6 +140,7 @@
         },
         {
             "name": "Alimentarium",
+            "points": 1,
             "stop": "Vevey, Hötel de ville",
             "trainStop": "Vevey",
             "timeStop": 2,
@@ -116,6 +148,7 @@
         },
         {
             "name": "Musée de Herisau",
+            "points": 1,
             "stop": "Herisau, Obstmarkt",
             "trainStop": "Herisau",
             "timeStop": 1,
@@ -123,6 +156,7 @@
         },
         {
             "name": "Château de Lenzbourg- Museum Aargau",
+            "points": 1,
             "stop": "Lenzburg, Schloss",
             "trainStop": "Lenzburg",
             "timeStop": 6,
@@ -130,6 +164,7 @@
         },
         {
             "name": "Musée de Morat",
+            "points": 1,
             "stop": "Murten/Morat",
             "trainStop": "Murten/Morat",
             "timeStop": 6,
@@ -137,6 +172,7 @@
         },
         {
             "name": "Musée d'Art et d'Histoire (GE)",
+            "points": 1,
             "stop": "Genève, Musée Art et Histoire",
             "trainStop": "Genève",
             "timeStop": 1,
@@ -144,6 +180,7 @@
         },
         {
             "name": "Musée jurassien d'art et d'histoire",
+            "points": 1,
             "stop": "Delémont, la Promenade",
             "trainStop": "Delémont",
             "timeStop": 1,
@@ -151,6 +188,7 @@
         },
         {
             "name": "Musée d'Histoire Naturelle de Neuchâtel",
+            "points": 1,
             "stop": "Neuchâtel, Terreaux Muséum",
             "trainStop": "Neuchâtel",
             "timeStop": 1,
@@ -158,6 +196,7 @@
         },
         {
             "name": "Museum Obwalden",
+            "points": 1,
             "stop": "Sarnen, Ei",
             "trainStop": "Sarnen",
             "timeStop": 1,
@@ -165,6 +204,7 @@
         },
         {
             "name": "Museum Sarganserland",
+            "points": 1,
             "stop": "Sargans, Zürcherstrasse",
             "trainStop": "Sargans",
             "timeStop": 13,
@@ -172,6 +212,7 @@
         },
         {
             "name": "Museum Stemmler",
+            "points": 1,
             "stop": "Schaffhausen",
             "trainStop": "Schaffhausen",
             "timeStop": 3,
@@ -179,6 +220,7 @@
         },
         {
             "name": "Schloss Waldegg",
+            "points": 1,
             "stop": "Feldbrunnen",
             "trainStop": "Solothurn",
             "timeStop": 10,
@@ -186,6 +228,7 @@
         },
         {
             "name": "Musée d'art de Zug",
+            "points": 1,
             "stop": "Zug, Burgbach",
             "trainStop": "Zug",
             "timeStop": 2,
@@ -193,6 +236,7 @@
         },
         {
             "name": "Haus der Museen Olten",
+            "points": 1,
             "stop": "Olten, Konradstrasse",
             "trainStop": "Olten",
             "timeStop": 1,

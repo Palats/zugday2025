@@ -30,13 +30,35 @@ export type ServicePoint = {
     wgs84: [number, number],
 };
 
+// Connections to draw on the map
 export type Connection = {
     source: string;
     target: string;
     // Connection time in minutes
-    time_minutes: number;
+    timeMinutes: number;
 }
 
 export type ConnectionsJSON = {
     connections: Connection[];
+}
+
+// Information about objectives
+export type Objective = {
+    // A name to display
+    name: string;
+    points: number;
+    // The closest public transport stop.
+    stop: string;
+    // Time between the objective the the stop.
+    timeStopMinutes: number;
+    // The closest (relevant) train stop.
+    trainStop: string;
+    // Time between closest transport stop and the train stop.
+    timeTrainStopMinutes: number;
+}
+
+export type ObjectivesJSON = {
+    final: Objective;
+    extras: Objective[];
+    museums: Objective[];
 }
