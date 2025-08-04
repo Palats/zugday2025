@@ -37,7 +37,6 @@ export type Connection = {
     time_minutes: number;
 }
 
-// Structure of the JSON with all manually entered data.
-export type ManualData = {
+export type ConnectionsJSON = {
     connections: Connection[];
 }
