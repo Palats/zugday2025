@@ -1,0 +1,202 @@
+{
+    "finalStop": "Bern, Wankdorf",
+    "extraStop": "Sargans",
+    "museums": [
+        {
+            "name": "Musée bernois d'histoire",
+            "stop": "Bern, Helvetiaplatz",
+            "trainStop": "Bern",
+            "timeStop": 1,
+            "timeTrainStop": 5
+        },
+        {
+            "name": "Musée de la garde suisse",
+            "stop": "Brig",
+            "trainStop": "Brig",
+            "timeStop": 15,
+            "timeTrainStop": 0
+        },
+        {
+            "name": "Talmuseum Ursern",
+            "stop": "Andermatt",
+            "trainStop": "Andermatt",
+            "timeStop": 10,
+            "timeTrainStop": 0
+        },
+        {
+            "name": "Kaeserberg",
+            "stop": "Granges-Paccot, rte du Coteau",
+            "trainStop": "Fribourg",
+            "timeStop": 1,
+            "timeTrainStop": 8
+        },
+        {
+            "name": "Urner Mineralien-Museum",
+            "stop": "Seedorf UR, Schloss A Pro",
+            "trainStop": "Altdorf UR",
+            "timeStop": 1,
+            "timeTrainStop": 4
+        },
+        {
+            "name": "NMB Nouveau Musée Bienne",
+            "stop": "Biel/Bienne, Museen/Musées",
+            "trainStop": "Biel/Bienne",
+            "timeStop": 3,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Kunsthaus Interlaken",
+            "stop": "Interlaken, Jungfraustrasse",
+            "trainStop": "Interlaken West",
+            "timeStop": 3,
+            "timeTrainStop": 1
+        },
+        {
+            "name": "Basler Papiermühle",
+            "stop": "Basel, St. Alban-Tor",
+            "trainStop": "Basel SBB",
+            "timeStop": 5,
+            "timeTrainStop": 7
+        },
+        {
+            "name": "Rätisches Museum",
+            "stop": "Chur, Malteser",
+            "trainStop": "Chur",
+            "timeStop": 6,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Monte Verità",
+            "stop": "Ascona, Centro",
+            "trainStop": "Locarno",
+            "timeStop": 23,
+            "timeTrainStop": 12
+        },
+        {
+            "name": "Musée du fer et du chemin de fer",
+            "stop": "Vallorbe, poste",
+            "trainStop": "Vallorbe",
+            "timeStop": 2,
+            "timeTrainStop": 4
+        },
+        {
+            "name": "Chemin de fer-musée Blonay-Chamby",
+            "stop": "Chamby-Musée",
+            "trainStop": "Chamby",
+            "timeStop": 1,
+            "timeTrainStop": 4
+        },
+        {
+            "name": "Bodensee Planetarium und Sternwarte",
+            "stop": "Kreuzlingen Bernrain",
+            "trainStop": "Kreuzlingen",
+            "timeStop": 8,
+            "timeTrainStop": 5
+        },
+        {
+            "name": "Barryland",
+            "stop": "Martigny, Fond. Gianadda",
+            "trainStop": "Martigny",
+            "timeStop": 7,
+            "timeTrainStop": 8
+        },
+        {
+            "name": "Panorama Bourbaki",
+            "stop": "Luzern, Löwenplatz",
+            "trainStop": "Luzern",
+            "timeStop": 1,
+            "timeTrainStop": 3
+        },
+        {
+            "name": "Alimentarium",
+            "stop": "Vevey, Hötel de ville",
+            "trainStop": "Vevey",
+            "timeStop": 2,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Musée de Herisau",
+            "stop": "Herisau, Obstmarkt",
+            "trainStop": "Herisau",
+            "timeStop": 1,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Château de Lenzbourg- Museum Aargau",
+            "stop": "Lenzburg, Schloss",
+            "trainStop": "Lenzburg",
+            "timeStop": 6,
+            "timeTrainStop": 12
+        },
+        {
+            "name": "Musée de Morat",
+            "stop": "Murten/Morat",
+            "trainStop": "Murten/Morat",
+            "timeStop": 6,
+            "timeTrainStop": 0
+        },
+        {
+            "name": "Musée d'Art et d'Histoire (GE)",
+            "stop": "Genève, Musée Art et Histoire",
+            "trainStop": "Genève",
+            "timeStop": 1,
+            "timeTrainStop": 11
+        },
+        {
+            "name": "Musée jurassien d'art et d'histoire",
+            "stop": "Delémont, la Promenade",
+            "trainStop": "Delémont",
+            "timeStop": 1,
+            "timeTrainStop": 8
+        },
+        {
+            "name": "Musée d'Histoire Naturelle de Neuchâtel",
+            "stop": "Neuchâtel, Terreaux Muséum",
+            "trainStop": "Neuchâtel",
+            "timeStop": 1,
+            "timeTrainStop": 1
+        },
+        {
+            "name": "Museum Obwalden",
+            "stop": "Sarnen, Ei",
+            "trainStop": "Sarnen",
+            "timeStop": 1,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Museum Sarganserland",
+            "stop": "Sargans, Zürcherstrasse",
+            "trainStop": "Sargans",
+            "timeStop": 13,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Museum Stemmler",
+            "stop": "Schaffhausen",
+            "trainStop": "Schaffhausen",
+            "timeStop": 3,
+            "timeTrainStop": 0
+        },
+        {
+            "name": "Schloss Waldegg",
+            "stop": "Feldbrunnen",
+            "trainStop": "Solothurn",
+            "timeStop": 10,
+            "timeTrainStop": 5
+        },
+        {
+            "name": "Musée d'art de Zug",
+            "stop": "Zug, Burgbach",
+            "trainStop": "Zug",
+            "timeStop": 2,
+            "timeTrainStop": 2
+        },
+        {
+            "name": "Haus der Museen Olten",
+            "stop": "Olten, Konradstrasse",
+            "trainStop": "Olten",
+            "timeStop": 1,
+            "timeTrainStop": 2
+        }
+    ]
+}
