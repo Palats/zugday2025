@@ -45,8 +45,8 @@
         {
             "name": "Kaeserberg",
             "points": 1,
-            "stop": "Granges-Paccot, rte du Coteau",
-            "trainStop": "Fribourg",
+            "stop": "Granges-Paccot, Rte du Coteau",
+            "trainStop": "Fribourg/Freiburg",
             "timeStop": 1,
             "timeTrainStop": 8
         },
@@ -141,7 +141,7 @@
         {
             "name": "Alimentarium",
             "points": 1,
-            "stop": "Vevey, Hötel de ville",
+            "stop": "Vevey, Hôtel de Ville",
             "trainStop": "Vevey",
             "timeStop": 2,
             "timeTrainStop": 2
@@ -173,7 +173,7 @@
         {
             "name": "Musée d'Art et d'Histoire (GE)",
             "points": 1,
-            "stop": "Genève, Musée Art et Histoire",
+            "stop": "Genève, Musée art et histoire",
             "trainStop": "Genève",
             "timeStop": 1,
             "timeTrainStop": 11
@@ -181,7 +181,7 @@
         {
             "name": "Musée jurassien d'art et d'histoire",
             "points": 1,
-            "stop": "Delémont, la Promenade",
+            "stop": "Delémont, La Promenade",
             "trainStop": "Delémont",
             "timeStop": 1,
             "timeTrainStop": 8
