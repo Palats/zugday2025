@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate": "tsx generate.ts"
+    "generate": "tsx generate.ts",
+    "gtfs": "tsx gtfs.ts"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",
