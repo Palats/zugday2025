@@ -4,6 +4,7 @@ import * as d3 from "d3";
 import * as d3zoom from "d3-zoom";
 import * as topojson from "topojson-client";
 import * as alldata from "./alldata";
+import * as geo from "./geo";
 
 alldata.prepareData();
 
@@ -139,7 +140,16 @@ export class ZGApp extends LitElement {
       .attr("y1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
       .attr("x2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
       .attr("y2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![1])
-      .style("stroke-width", c => 1 + 2 * c.timeMinutes / 120);
+      .style("stroke-width", c => {
+        // We want to represent by the thickness whether the connection is fast or not.
+        // I.e., if the straight line connection takes a lot longer, it should be thin.
+        const src = alldata.servicePointsByName.get(c.source)!.wgs84;
+        const target = alldata.servicePointsByName.get(c.target)!.wgs84;
+        const dist = geo.haversineDistanceMeters(src, target);
+        const speedKph = (dist / 1000) / (c.timeMinutes / 60);
+        // return 1 + (speedKph / 150) * 4;
+        return speedKph / 50;
+      });
 
     connectionGroup.each(function (c) {
       // Should probably use getTotalLength / getPointAtLength, but so far, I've failed

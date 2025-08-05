@@ -1,3 +1,5 @@
+// Similarities between strings.
+
 // Source: https://github.com/aceakash/string-similarity/blob/master/src/index.js
 // MIT License.
 

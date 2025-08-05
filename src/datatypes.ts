@@ -1,3 +1,5 @@
+import * as geo from "./geo";
+
 export interface SwissMap extends TopoJSON.Topology {
     objects: {
         cantons: { type: "GeometryCollection"; geometries: Array<TopoJSON.Polygon | TopoJSON.MultiPolygon> };
@@ -27,7 +29,7 @@ export type ServicePoint = {
     name: string,
     transports: string[],
     // East, North
-    wgs84: [number, number],
+    wgs84: geo.WGS84,
 };
 
 // Connections to draw on the map
