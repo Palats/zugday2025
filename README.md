@@ -14,10 +14,18 @@ Setup:
 npm install
 ```
 
+Get GTFS (transit) files and generate DB:
+```
+npm run gtfs-download
+```
+This is needed once and generate a 5G file.
+
+
 Regenerate data files:
 ```
 npm run generate
 ```
+This regenerate files which are already checked-in - only needed if the logic or sources have changed.
 
 Dev webserver:
 ```

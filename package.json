@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "generate": "tsx generate.ts",
+    "gtfs-download": "gtfs-import --configPath gtfs-config.json",
     "gtfs": "tsx gtfs.ts"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "@types/topojson": "^3.2.6",
     "csv-parse": "^6.1.0",
     "d3": "^7.9.0",
+    "gtfs": "^4.17.6",
     "jszip": "^3.10.1",
     "lit": "^3.3.1",
     "topojson-client": "^3.1.0"

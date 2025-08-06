@@ -3,29 +3,17 @@
 // https://opentransportdata.swiss/de/cookbook/timetable-cookbook/gtfs/
 // https://data.opentransportdata.swiss/en/dataset/timetable-2025-gtfs2020
 
-import { promises as fs } from "fs";
-import * as csv from "csv-parse/sync";
-import * as path from "node:path";
+import * as gtfs from "gtfs";
 
-// https://gtfs.org/documentation/schedule/reference/#stopstxt
-type GTFSStops = {
-    stop_id: string,
-    stop_name: string,
-    stop_lat: string,
-    stop_lon: string,
-    location_type: string,
-    parent_station: string,
-    platform_code: string,
-}
+export async function run(gtfsDBFilename: string) {
+    const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
+    const routes = gtfs.getRoutes(
+        {}, // No query filters
+        ['route_id', 'route_short_name', 'route_color'], // Only return these fields
+        [['route_short_name', 'ASC']], // Sort by this field and direction
+        { db: db }, // Options for the query. Can specify which database to use if more than one are open
+    );
+    gtfs.closeDb(db);
 
-export async function run(gtfsDir: string) {
-    console.log("GTFS directory:", gtfsDir);
-
-    const rawcsvstops = await fs.readFile(path.join(gtfsDir, "stops.txt"));
-    const stops = csv.parse(rawcsvstops, { delimiter: ",", columns: true }) as GTFSStops[];
-    for (const s of stops) {
-        if (s.stop_name.toLowerCase().includes("wiedikon")) {
-            console.log(s);
-        }
-    }
+    console.log(routes);
 }

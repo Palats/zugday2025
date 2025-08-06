@@ -1,0 +1,8 @@
+{
+    "agencies": [
+        {
+            "url": "https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020/permalink"
+        }
+    ],
+    "sqlitePath": "local/gtfs.sqlite.db"
+}
