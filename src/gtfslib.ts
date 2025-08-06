@@ -5,7 +5,7 @@
 
 import * as gtfs from "gtfs";
 
-function printAllRoutes(db: any, serviceIDs: Set<string>) {
+function printAllRoutes(db: any, serviceIDs: Set<string>, minTime?: string, maxTime?: string) {
     // Find all relevant stops.
     const rootStopIDs = new Set([
         "Parent8503011", // 'Zürich Wiedikon'
@@ -21,8 +21,12 @@ function printAllRoutes(db: any, serviceIDs: Set<string>) {
     }
 
     const tripIDs = new Set<string>();
-    const stoptimes = gtfs.getStoptimes({ "stop_id": Array.from(stopIDs) }, ["trip_id"], [], { db: db });
+    const stoptimes = gtfs.getStoptimes({ "stop_id": Array.from(stopIDs) }, ["trip_id", "arrival_time", "departure_time"], [], { db: db });
     for (const st of stoptimes) {
+        if (st.departure_time === undefined || st.arrival_time === undefined) { continue; }
+        // Terrible way of comparing time
+        if (minTime !== undefined && st.departure_time < minTime) { continue; }
+        if (maxTime !== undefined && st.arrival_time > maxTime) { continue; }
         tripIDs.add(st.trip_id);
     }
 
@@ -95,7 +99,7 @@ export async function run(gtfsDBFilename: string) {
         throw new Error("not supported");
     }
 
-    printAllRoutes(db, relevantServiceIDs);
+    printAllRoutes(db, relevantServiceIDs, "08:00:00", "20:00:00");
 
     gtfs.closeDb(db);
 }
