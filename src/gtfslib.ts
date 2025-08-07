@@ -4,21 +4,37 @@
 // https://data.opentransportdata.swiss/en/dataset/timetable-2025-gtfs2020
 
 import * as gtfs from "gtfs";
+import * as sqlite from "better-sqlite3";
 
-function printAllRoutes(db: any, serviceIDs: Set<string>, minTime?: string, maxTime?: string) {
-    // Find all relevant stops.
-    const rootStopIDs = new Set([
-        "Parent8503011", // 'Zürich Wiedikon'
-        "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
-    ]);
+function sqlNArgs(n: number): string {
+    return "(" + Array(n).fill("?").join(",") + ")";
+}
+
+function findStopChildrenIDs(db: sqlite.Database, roots: Set<string>): Set<string> {
+    /*const stops = db.prepare(`
+        SELECT *
+        FROM stops
+        WHERE
+            stop_id IN ${sqlNArgs(roots.size)}
+            OR parent_station IN ${sqlNArgs(roots.size)}
+    `).all(Array.from(roots).concat(Array.from(roots)));*/
+
 
     const stopIDs = new Set<string>();
     const allStops = gtfs.getStops({}, ["parent_station", "stop_id"], [], { db: db });
     for (const s of allStops) {
-        if (rootStopIDs.has(s.parent_station ?? "") || rootStopIDs.has(s.stop_id)) {
+        if (roots.has(s.parent_station ?? "") || roots.has(s.stop_id)) {
             stopIDs.add(s.stop_id);
         }
     }
+    return stopIDs
+}
+
+function printAllRoutes(db: sqlite.Database, serviceIDs: Set<string>, minTime?: string, maxTime?: string) {
+    const stopIDs = findStopChildrenIDs(db, new Set([
+        "Parent8503011", // 'Zürich Wiedikon'
+        "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
+    ]));
 
     const tripIDs = new Set<string>();
     const stoptimes = gtfs.getStoptimes({ "stop_id": Array.from(stopIDs) }, ["trip_id", "arrival_time", "departure_time"], [], { db: db });
@@ -73,9 +89,7 @@ function dayOfWeek(d: Date): DayOfWeek {
     throw new Error(`invalid day of week ${d.getUTCDay()}`);
 }
 
-export async function run(gtfsDBFilename: string) {
-    const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
-
+function printLinesAtStop(db: sqlite.Database) {
     const targetDay = "2025-08-30";
     const d = new Date(targetDay);
     const gtfsDate = (d.getUTCFullYear() * 100 + d.getUTCMonth()) * 100 + d.getUTCDate();
@@ -100,6 +114,35 @@ export async function run(gtfsDBFilename: string) {
     }
 
     printAllRoutes(db, relevantServiceIDs, "08:00:00", "20:00:00");
+}
+
+export async function run(gtfsDBFilename: string) {
+    const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
+
+    const roots = new Set([
+        "Parent8503011", // 'Zürich Wiedikon'
+        "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
+    ]);
+
+    const stopIDs = findStopChildrenIDs(db, roots);
+    console.log(stopIDs);
+
+    const stops = db.prepare(`
+        SELECT stop_id
+        FROM stops
+        WHERE
+            stop_id IN ${sqlNArgs(roots.size)}
+            OR parent_station IN ${sqlNArgs(roots.size)}
+    `).pluck(true).all(Array.from(roots).concat(Array.from(roots)));
+    console.log(stops);
+
+    /*const transfers = gtfs.getTransfers({}, [], [], { db: db });
+    for (const t of transfers) {
+        if (t.transfer_type === 4) { continue; }
+        if (t.from_route_id || t.to_route_id || t.from_trip_id || t.to_trip_id) {
+            console.log(t);
+        }
+    }*/
 
     gtfs.closeDb(db);
 }
