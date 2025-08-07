@@ -155,13 +155,19 @@ export async function run(gtfsDBFilename: string) {
     `).all(stops, stops);
     console.log(transfers);
 
-    /*const transfers = gtfs.getTransfers({}, [], [], { db: db });
-    for (const t of transfers) {
-        if (t.transfer_type === 4) { continue; }
-        if (t.from_route_id || t.to_route_id || t.from_trip_id || t.to_trip_id) {
-            console.log(t);
-        }
-    }*/
+    // Zug: Parent8502204
+
+    const stopsZug = db.prepare(`
+        SELECT
+            stop_id,
+            stop_name,
+            parent_station
+        FROM stops
+        WHERE
+            LOWER(stop_name) LIKE '%zug%'
+            -- AND parent_station IS NULL
+    `).all();
+    console.log(stopsZug);
 
     gtfs.closeDb(db);
 }
