@@ -124,17 +124,36 @@ export async function run(gtfsDBFilename: string) {
         "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
     ]);
 
-    const stopIDs = findStopChildrenIDs(db, roots);
-    console.log(stopIDs);
-
     const stops = db.prepare(`
         SELECT stop_id
         FROM stops
         WHERE
             stop_id IN ${sqlNArgs(roots.size)}
             OR parent_station IN ${sqlNArgs(roots.size)}
-    `).pluck(true).all(Array.from(roots).concat(Array.from(roots)));
+    `).pluck(true).all(Array.from(roots), Array.from(roots));
     console.log(stops);
+
+    const transfers = db.prepare(`
+        WITH subtrans AS (
+            SELECT
+                *
+            FROM transfers
+            WHERE
+                from_stop_id IN ${sqlNArgs(stops.length)}
+                OR to_stop_id  IN ${sqlNArgs(stops.length)}
+        )
+        SELECT
+            s_from.stop_id AS from_id,
+            s_from.stop_name AS from_name,
+            s_to.stop_id AS to_id,
+            s_to.stop_name AS to_name,
+            tr.min_transfer_time / 60 AS minutes
+        FROM
+            subtrans AS tr
+            JOIN stops AS s_from ON tr.from_stop_id = s_from.stop_id
+            JOIN stops AS s_to ON tr.to_stop_id = s_to.stop_id
+    `).all(stops, stops);
+    console.log(transfers);
 
     /*const transfers = gtfs.getTransfers({}, [], [], { db: db });
     for (const t of transfers) {
