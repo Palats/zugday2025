@@ -10,6 +10,69 @@ function sqlNArgs(n: number): string {
     return "(" + Array(n).fill("?").join(",") + ")";
 }
 
+// Returns the list of unique stop names for the list of provided stop IDs.
+// This helps removing redundant stop names coming from list of platforms and the like.
+function listStopNames(db: sqlite.Database, stopIDs: string[]): string[] {
+    return db.prepare(`
+        SELECT
+            stop_name
+        FROM
+            stops
+        WHERE
+            stop_id IN ${sqlNArgs(stopIDs.length)}
+        GROUP BY stop_name
+        ORDER BY stop_name
+    `).pluck(true).all(stopIDs) as string[];
+}
+
+// Finds all connected stop IDs for the given stop IDs.
+// Connected means either child or parent stop or with a transfer.
+// This is recursive.
+function findConnectedStops(db: sqlite.Database, stopIDs: string[]): string[] {
+    let expanded = new Set<string>();
+    let toExpand = new Set<string>(stopIDs);
+    while (toExpand.size > 0) {
+        const found = new Set<string>();
+
+        const ids = Array.from(toExpand);
+
+        // Find children / parent stops connected to the nodes to expand.
+        const family = db.prepare(`
+            SELECT
+                stop_id
+            FROM stops
+            WHERE
+                stop_id IN ${sqlNArgs(ids.length)}
+                OR parent_station IN ${sqlNArgs(ids.length)}
+        `).pluck(true).all(ids, ids) as string[];
+        for (const s of family) {
+            found.add(s);
+        }
+
+        // Find transfers to/from the nodes to expand. This
+        // does not look at the found children/parent - those will be
+        // for another round.
+        const transfers = db.prepare(`
+            SELECT
+                from_stop_id,
+                to_stop_id
+            FROM transfers
+            WHERE
+                from_stop_id IN ${sqlNArgs(ids.length)}
+                OR to_stop_id  IN ${sqlNArgs(ids.length)}
+        `).all(ids, ids) as { from_stop_id: string, to_stop_id: string }[];
+        for (const t of transfers) {
+            found.add(t.from_stop_id);
+            found.add(t.to_stop_id);
+        }
+
+        // Be sure to update 'expanded' before we check for new ones.
+        expanded = expanded.union(toExpand);
+        toExpand = found.difference(expanded);
+    }
+    return Array.from(expanded);
+}
+
 function findStopChildrenIDs(db: sqlite.Database, roots: Set<string>): Set<string> {
     /*const stops = db.prepare(`
         SELECT *
@@ -119,55 +182,11 @@ function printLinesAtStop(db: sqlite.Database) {
 export async function run(gtfsDBFilename: string) {
     const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
 
-    const roots = new Set([
-        "Parent8503011", // 'Zürich Wiedikon'
-        "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
-    ]);
-
-    const stops = db.prepare(`
-        SELECT stop_id
-        FROM stops
-        WHERE
-            stop_id IN ${sqlNArgs(roots.size)}
-            OR parent_station IN ${sqlNArgs(roots.size)}
-    `).pluck(true).all(Array.from(roots), Array.from(roots));
-    console.log(stops);
-
-    const transfers = db.prepare(`
-        WITH subtrans AS (
-            SELECT
-                *
-            FROM transfers
-            WHERE
-                from_stop_id IN ${sqlNArgs(stops.length)}
-                OR to_stop_id  IN ${sqlNArgs(stops.length)}
-        )
-        SELECT
-            s_from.stop_id AS from_id,
-            s_from.stop_name AS from_name,
-            s_to.stop_id AS to_id,
-            s_to.stop_name AS to_name,
-            tr.min_transfer_time / 60 AS minutes
-        FROM
-            subtrans AS tr
-            JOIN stops AS s_from ON tr.from_stop_id = s_from.stop_id
-            JOIN stops AS s_to ON tr.to_stop_id = s_to.stop_id
-    `).all(stops, stops);
-    console.log(transfers);
-
     // Zug: Parent8502204
+    // 'Zürich Wiedikon': "Parent8503011"
+    // 'Zürich Wiedikon, Bahnhof': "Parent8573710"
 
-    const stopsZug = db.prepare(`
-        SELECT
-            stop_id,
-            stop_name,
-            parent_station
-        FROM stops
-        WHERE
-            LOWER(stop_name) LIKE '%zug%'
-            -- AND parent_station IS NULL
-    `).all();
-    console.log(stopsZug);
+    console.log(listStopNames(db, findConnectedStops(db, ["Parent8503011"])));
 
     gtfs.closeDb(db);
 }
