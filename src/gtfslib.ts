@@ -26,8 +26,35 @@ function dayOfWeek(d: Date): DayOfWeek {
 }
 
 // Transform a date object into a GTFS date number (e.g., 20250830)
-function convertDate(d: Date): number {
+function formatDate(d: Date): number {
     return (d.getUTCFullYear() * 100 + d.getUTCMonth()) * 100 + d.getUTCDate();
+}
+
+// Transform a GTFS date number (e.g., 20250830) to a Date object with a random time.
+function parseDate(n: number): Date {
+    const year = Math.floor(n / 10000);
+    n = n - 10000 * year;
+    const month = Math.floor(n / 100);
+    const day = n - 100 * month;
+
+    const d = new Date(0);
+    d.setUTCFullYear(year);
+    d.setUTCMonth(month - 1); // Javascript is 0 based for the month
+    d.setUTCDate(day);
+
+    return d;
+}
+
+function isSameDay(d1: Date, d2: Date): boolean {
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+        d1.getUTCMonth() === d2.getUTCMonth() &&
+        d1.getUTCDate() === d2.getUTCDate();
+}
+
+function isNextDay(d1: Date, d2: Date): boolean {
+    d1 = new Date(d1);
+    d1.setUTCDate(d1.getUTCDate() + 1);
+    return isSameDay(d1, d2);
 }
 
 // Returns the list of unique stop names for the list of provided stop IDs.
@@ -91,6 +118,124 @@ function findConnectedStops(db: sqlite.Database, stopIDs: string[]): string[] {
         toExpand = found.difference(expanded);
     }
     return Array.from(expanded);
+}
+
+// Picks a list of dates (e.g., 20251018) and returns
+// a list with date ranges simplified.
+function findDateRanges(rawDates: number[]): string[] {
+    if (rawDates.length === 0) { return []; }
+    const dates = rawDates.toSorted().map(parseDate);
+
+    const ranges: string[] = [];
+    let rangeStart = dates[0];
+    let previous = dates[0];
+
+    const pushRange = () => {
+        if (isSameDay(previous, rangeStart)) {
+            ranges.push(`${formatDate(previous)}`);
+        } else {
+            ranges.push(`${formatDate(rangeStart)}..${formatDate(previous)}`);
+        }
+    }
+
+    for (const d of dates.slice(1)) {
+        if (!isNextDay(previous, d)) {
+            pushRange();
+            rangeStart = d;
+        }
+        previous = d;
+    }
+    // "previous" is the last element now.
+    pushRange();
+
+    return ranges;
+}
+
+function tripInfo(db: sqlite.Database, tripID: string): string {
+    const trip = db.prepare(`
+        SELECT
+            route_id,
+            service_id,
+            trip_headsign
+        FROM trips
+        WHERE trip_id = ?
+    `).get(tripID) as gtfs.Trip;
+
+    const route = db.prepare(`
+        SELECT
+            agency_id,
+            route_long_name,
+            route_short_name
+        FROM routes
+        WHERE route_id = ?
+    `).get(trip.route_id) as gtfs.Route;
+
+    const agency = db.prepare(`
+        SELECT
+            agency_name
+        FROM agency
+        WHERE agency_id = ?
+    `).get(route.agency_id) as gtfs.Agency;
+
+    const calendar = db.prepare(`
+        SELECT
+            *
+        FROM calendar
+        WHERE service_id = ?
+    `).get(trip.service_id) as gtfs.Calendar;
+
+    const addedDates = db.prepare(`
+        SELECT
+            *
+        FROM calendar_dates
+        WHERE service_id = ? AND exception_type = 1
+    `).all(trip.service_id) as gtfs.CalendarDate[];
+    const removedDates = db.prepare(`
+        SELECT
+            *
+        FROM calendar_dates
+        WHERE service_id = ? AND exception_type = 2
+    `).all(trip.service_id) as gtfs.CalendarDate[];
+
+    const stops = db.prepare(`
+        SELECT
+            arrival_time,
+            departure_time,
+            stop_id,
+            stop_name
+        FROM
+            stop_times
+            JOIN stops USING (stop_id)
+        WHERE trip_id=?
+        ORDER BY stop_sequence
+    `).all(tripID) as any;
+
+    let s = ``;
+    s += `trip_id=${tripID}, route_id=${trip.route_id}, service_id=${trip.service_id}, agency_id=${route.agency_id}\n`;
+    s += `Direction ${trip.trip_headsign} by ${agency.agency_name}\n`;
+    s += `From ${calendar.start_date} to ${calendar.end_date} ; Week: `;
+    s += calendar.monday ? "m" : "_";
+    s += calendar.tuesday ? "t" : "_";
+    s += calendar.wednesday ? "w" : "_";
+    s += calendar.thursday ? "t" : "_";
+    s += calendar.friday ? "f" : "_";
+    s += calendar.saturday ? "s" : "_";
+    s += calendar.sunday ? "s" : "_";
+    s += "\n";
+
+    if (addedDates.length > 0) {
+        s += ".. also: " + findDateRanges(addedDates.map(d => d.date)).join(", ") + "\n";
+    }
+    if (removedDates.length > 0) {
+        s += ".. exceptions: " + findDateRanges(removedDates.map(d => d.date)).join(", ") + "\n";
+    }
+
+    s += "Stops:\n"
+    for (const st of stops) {
+        s += `  + ${st.arrival_time} ${st.departure_time} ${st.stop_name} [${st.stop_id}]\n`;
+    }
+
+    return s;
 }
 
 function printAllRoutes(db: sqlite.Database, serviceIDs: Set<string>, minTime?: string, maxTime?: string) {
@@ -178,7 +323,7 @@ export async function run(gtfsDBFilename: string) {
 
 
     const d = new Date("2025-08-30");
-    const gtfsDate = convertDate(d);
+    const gtfsDate = formatDate(d);
     const gtfsDayOfWeek = dayOfWeek(d);
     const minTime = "08:00:00";
     const maxTime = "20:00:00";
@@ -279,6 +424,8 @@ export async function run(gtfsDBFilename: string) {
         "maxtime": maxTime,
     }, startIDs, endIDs);
     console.log(r);
+
+    console.log(tripInfo(db, "774.TA.91-24-j25-1.202.H"));
 
     gtfs.closeDb(db);
 }
