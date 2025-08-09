@@ -27,7 +27,8 @@ function dayOfWeek(d: Date): DayOfWeek {
 
 // Transform a date object into a GTFS date number (e.g., 20250830)
 function formatDate(d: Date): number {
-    return (d.getUTCFullYear() * 100 + d.getUTCMonth()) * 100 + d.getUTCDate();
+    // Javascript is 0 based for the month
+    return (d.getUTCFullYear() * 100 + d.getUTCMonth() + 1) * 100 + d.getUTCDate();
 }
 
 // Transform a GTFS date number (e.g., 20250830) to a Date object with a random time.
@@ -124,6 +125,7 @@ function findConnectedStops(db: sqlite.Database, stopIDs: string[]): string[] {
 // a list with date ranges simplified.
 function findDateRanges(rawDates: number[]): string[] {
     if (rawDates.length === 0) { return []; }
+    // console.log(rawDates.toSorted().map(r => r.toString()).join(", "));
     const dates = rawDates.toSorted().map(parseDate);
 
     const ranges: string[] = [];
@@ -156,7 +158,8 @@ function tripInfo(db: sqlite.Database, tripID: string): string {
         SELECT
             route_id,
             service_id,
-            trip_headsign
+            trip_headsign,
+            trip_short_name
         FROM trips
         WHERE trip_id = ?
     `).get(tripID) as gtfs.Trip;
@@ -212,7 +215,7 @@ function tripInfo(db: sqlite.Database, tripID: string): string {
 
     let s = ``;
     s += `trip_id=${tripID}, route_id=${trip.route_id}, service_id=${trip.service_id}, agency_id=${route.agency_id}\n`;
-    s += `Direction ${trip.trip_headsign} by ${agency.agency_name}\n`;
+    s += `${route.route_short_name} (${trip.trip_short_name}) direction ${trip.trip_headsign} by ${agency.agency_name}\n`;
     s += `From ${calendar.start_date} to ${calendar.end_date} ; Week: `;
     s += calendar.monday ? "m" : "_";
     s += calendar.tuesday ? "t" : "_";
@@ -328,7 +331,7 @@ export async function run(gtfsDBFilename: string) {
     const minTime = "08:00:00";
     const maxTime = "20:00:00";
 
-    const r = db.prepare(`
+    const results = db.prepare(`
         WITH
             -- Services running that day.
             in_range_services AS (
@@ -338,21 +341,25 @@ export async function run(gtfsDBFilename: string) {
                     AND start_date <= @date
                     AND end_date >= @date
 
-                UNION
+                UNION -- Add explicit additions to the schedule
 
                 SELECT service_id FROM calendar_dates
-                WHERE
-                    date = @date
-                    AND exception_type = 1
-                GROUP BY
-                    service_ID
+                WHERE date = @date AND exception_type = 1
+                GROUP BY service_ID
+
+                EXCEPT -- Remove explicit removal from the schedule
+
+                SELECT service_id FROM calendar_dates
+                WHERE date = @date AND exception_type = 2
+                GROUP BY service_ID
             ),
             -- Select potential departure times for the start station.
             start_times AS (
                 SELECT
                     trip_id,
                     stop_id,
-                    departure_time
+                    departure_time,
+                    stop_sequence
                 FROM stop_times
                 WHERE
                     departure_time >= @mintime
@@ -363,7 +370,8 @@ export async function run(gtfsDBFilename: string) {
                 SELECT
                     trip_id,
                     stop_id,
-                    arrival_time
+                    arrival_time,
+                    stop_sequence
                 FROM stop_times
                 WHERE
                     arrival_time <= @maxtime
@@ -378,11 +386,14 @@ export async function run(gtfsDBFilename: string) {
                     start_times.stop_id AS start_id,
                     end_times.stop_id AS end_id
                 FROM start_times JOIN end_times USING (trip_id)
+                -- Make sure that it stops at the departure before arriving at the end.
+                WHERE start_times.stop_sequence < end_times.stop_sequence
             ),
             -- Actual trips
             matching_trips AS (
                 SELECT
                     trip_id,
+                    trip_short_name,
                     route_id,
                     departure_time,
                     arrival_time,
@@ -398,6 +409,7 @@ export async function run(gtfsDBFilename: string) {
             with_details AS (
                 SELECT
                     trip_id,
+                    trip_short_name,
                     route_id,
                     departure_time,
                     arrival_time,
@@ -422,10 +434,22 @@ export async function run(gtfsDBFilename: string) {
         "date": gtfsDate,
         "mintime": minTime,
         "maxtime": maxTime,
-    }, startIDs, endIDs);
-    console.log(r);
+    }, startIDs, endIDs) as {
+        trip_id: string,
+        route_id: string,
+        departure_time: string,
+        arrival_time: string,
+        start_id: string,
+        end_id: string,
+        trip_short_name: string,
+        route_short_name: string,
+        start_name: string,
+        end_name: string
+    }[];
 
-    console.log(tripInfo(db, "774.TA.91-24-j25-1.202.H"));
+    for (const r of results) {
+        console.log(`${r.departure_time}-${r.arrival_time} ${r.route_short_name} (${r.trip_short_name}) ${r.start_name}->${r.end_name} [trip_id=${r.trip_id}]`);
+    }
 
     gtfs.closeDb(db);
 }
