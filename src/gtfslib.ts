@@ -241,95 +241,27 @@ function tripInfo(db: sqlite.Database, tripID: string): string {
     return s;
 }
 
-function printAllRoutes(db: sqlite.Database, serviceIDs: Set<string>, minTime?: string, maxTime?: string) {
-    const stopIDs = findConnectedStops(db, [
-        "Parent8503011", // 'Zürich Wiedikon'
-        "Parent8573710", // 'Zürich Wiedikon, Bahnhof'
-    ]);
-
-    const tripIDs = new Set<string>();
-    const stoptimes = gtfs.getStoptimes({ "stop_id": Array.from(stopIDs) }, ["trip_id", "arrival_time", "departure_time"], [], { db: db });
-    for (const st of stoptimes) {
-        if (st.departure_time === undefined || st.arrival_time === undefined) { continue; }
-        // Terrible way of comparing time
-        if (minTime !== undefined && st.departure_time < minTime) { continue; }
-        if (maxTime !== undefined && st.arrival_time > maxTime) { continue; }
-        tripIDs.add(st.trip_id);
-    }
-
-    const routeIDs = new Set<string>();
-    const trips = gtfs.getTrips({ "trip_id": Array.from(tripIDs) }, ["route_id", "service_id"], [], { db: db });
-    for (const t of trips) {
-        if (serviceIDs.size > 0 && !serviceIDs.has(t.service_id)) { continue; }
-        routeIDs.add(t.route_id);
-    }
-
-    const agencyIDs = new Set<string>();
-    const routes = gtfs.getRoutes({ "route_id": Array.from(routeIDs) }, ["agency_id", "route_short_name", "route_desc"], [], { db: db });
-    for (const r of routes) {
-        if (r.agency_id) {
-            agencyIDs.add(r.agency_id);
-        }
-    }
-
-    const agencyNameByID = new Map<string, string>();
-    const agencies = gtfs.getAgencies({ "agency_id": Array.from(agencyIDs) }, [], [], { db: db });
-    for (const a of agencies) {
-        if (a.agency_id) {
-            agencyNameByID.set(a.agency_id, a.agency_name);
-        }
-    }
-
-    for (const r of routes) {
-        console.log(`${agencyNameByID.get(r.agency_id!)} ${r.route_short_name}`);
-    }
+type ConnectionInfo = {
+    trip_id: string,
+    route_id: string,
+    departure_time: string,
+    arrival_time: string,
+    start_id: string,
+    end_id: string,
+    trip_short_name: string,
+    route_short_name: string,
+    start_name: string,
+    end_name: string
 }
 
-function printLinesAtStop(db: sqlite.Database) {
-    const targetDay = "2025-08-30";
-    const d = new Date(targetDay);
-    const gtfsDate = (d.getUTCFullYear() * 100 + d.getUTCMonth()) * 100 + d.getUTCDate();
-    const gtfsDayOfWeek = dayOfWeek(d);
-    console.log("gtfsDate", gtfsDate, "dayOfWeek", gtfsDayOfWeek);
+function findDirectConnections(db: sqlite.Database, startID: string, endID: string, day: number, minTime: string, maxTime: string): ConnectionInfo[] {
 
-    // This does not include services which started the day before.
+    const startIDs = findConnectedStops(db, [startID]);
+    const endIDs = findConnectedStops(db, [endID]);
 
-    const relevantServiceIDs = new Set<string>();
-    const allCalendars = gtfs.getCalendars({}, [], [], { db: db });
-    for (const c of allCalendars) {
-        if (c.start_date > gtfsDate || c.end_date < gtfsDate) { continue; }
-        const v = c[gtfsDayOfWeek];
-        if (v === 0) { continue; }
-        relevantServiceIDs.add(c.service_id);
-    }
-
-    const calendarDates = gtfs.getCalendarDates({ date: gtfsDayOfWeek }, [], [], { db: db });
-    if (calendarDates.length > 0) {
-        console.log("found calendar_dates exception, not supported:", calendarDates);
-        throw new Error("not supported");
-    }
-
-    printAllRoutes(db, relevantServiceIDs, "08:00:00", "20:00:00");
-}
-
-export async function run(gtfsDBFilename: string) {
-    const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
-
-    // Zug: Parent8502204
-    // 'Zürich Wiedikon': "Parent8503011"
-    // 'Zürich Wiedikon, Bahnhof': "Parent8573710"
-
-    const startIDs = findConnectedStops(db, ["Parent8503011"]);
-    console.log("Starts: ", listStopNames(db, startIDs).join(" | "));
-    const endIDs = findConnectedStops(db, ["Parent8502204"]);
-    console.log("Ends: ", listStopNames(db, endIDs).join(" | "));
-
-
-    const d = new Date("2025-08-30");
+    const d = parseDate(day);
     const gtfsDate = formatDate(d);
     const gtfsDayOfWeek = dayOfWeek(d);
-    const minTime = "08:00:00";
-    const maxTime = "20:00:00";
 
     const results = db.prepare(`
         WITH
@@ -434,22 +366,67 @@ export async function run(gtfsDBFilename: string) {
         "date": gtfsDate,
         "mintime": minTime,
         "maxtime": maxTime,
-    }, startIDs, endIDs) as {
-        trip_id: string,
-        route_id: string,
-        departure_time: string,
-        arrival_time: string,
-        start_id: string,
-        end_id: string,
-        trip_short_name: string,
-        route_short_name: string,
-        start_name: string,
-        end_name: string
-    }[];
+    }, startIDs, endIDs) as ConnectionInfo[];
 
+    return results;
+}
+
+// Try to connect all stops into clusters based on transfers & parent/child.
+// Note: this is not working; it does not pick a useful name and lacks recursive merging
+function buildGroupedStops(db: sqlite.Database) {
+    const r = db.prepare(`
+        -- Assumes there is only a single level of parent
+        WITH
+            parented AS (
+                SELECT
+                    s1.stop_id AS stop_id,
+                    CASE
+                        WHEN s2.stop_id IS NOT NULL THEN s2.stop_id
+                        ELSE s1.stop_id
+                    END as group_id
+                FROM
+                    stops AS s1
+                    LEFT JOIN stops AS s2 ON (s2.stop_id = s1.parent_station)
+            ),
+            -- Then, apply transfers
+            transfered AS (
+                SELECT
+                    p1.stop_id,
+                    CASE
+                        WHEN p2.group_id IS NULL OR p1.group_id < p2.group_id THEN p1.group_id
+                        ELSE p2.group_id
+                    END as group_id
+                FROM
+                    parented AS p1
+                    LEFT JOIN transfers AS t ON (p1.stop_id = t.from_stop_id)
+                    LEFT JOIN parented AS p2 ON(t.to_stop_id = p2.stop_id)
+                GROUP BY p1.stop_id
+            )
+        SELECT
+            group_id,
+            stops.stop_name,
+            count(*)
+        FROM transfered
+            JOIN stops ON (transfered.group_id = stops.stop_id)
+        GROUP BY group_id
+        ORDER BY count(*) DESC
+    `).all();
+    console.log(r);
+}
+
+export async function run(gtfsDBFilename: string) {
+    const db = gtfs.openDb({ sqlitePath: gtfsDBFilename });
+
+    // Zug: Parent8502204
+    // 'Zürich Wiedikon': "Parent8503011"
+    // 'Zürich Wiedikon, Bahnhof': "Parent8573710"
+
+    /*const results = findDirectConnections(db, "Parent8503011", "Parent8502204", 20250830, "08:00:00", "20:00:00");
     for (const r of results) {
         console.log(`${r.departure_time}-${r.arrival_time} ${r.route_short_name} (${r.trip_short_name}) ${r.start_name}->${r.end_name} [trip_id=${r.trip_id}]`);
-    }
+    }*/
+
+    buildGroupedStops(db);
 
     gtfs.closeDb(db);
 }
