@@ -12,6 +12,7 @@
     "gtfs": "tsx gtfs.ts"
   },
   "dependencies": {
+    "@material-symbols/font-400": "^0.34.0",
     "@types/d3": "^7.4.3",
     "@types/topojson": "^3.2.6",
     "csv-parse": "^6.1.0",

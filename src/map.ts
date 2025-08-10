@@ -5,6 +5,7 @@ import * as d3zoom from "d3-zoom";
 import * as topojson from "topojson-client";
 import * as alldata from "./alldata";
 import * as geo from "./geo";
+import * as common from "./common";
 
 /**
  * Map rendering.
@@ -212,7 +213,7 @@ export class ZGMap extends LitElement {
             .text(sp => sp.name);
     }
 
-    static styles = css`
+    static styles = [common.sharedCSS, css`
     :host {
       width: 100%;
       height: 100%;
@@ -276,7 +277,7 @@ export class ZGMap extends LitElement {
         text-shadow: 1px 1px 2px white;
         user-select: none;
     }
-  `
+  `];
 }
 
 declare global {
