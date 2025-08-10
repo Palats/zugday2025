@@ -1,6 +1,10 @@
 import { css } from "lit"
 
 export const sharedCSS = css`
+    :host {
+        font-size: 15px;
+        font-family: sans-serif;
+    }
     .material-symbols-outlined {
         font-family: 'Material Symbols Outlined';
         font-weight: normal;

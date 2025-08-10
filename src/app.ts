@@ -25,7 +25,20 @@ export class ZGApp extends LitElement {
       </div>
       ${this.showMenu ? html`
         <div class="menu">
-          Plop
+          <h1>Zugday tools</h1>
+          <div>
+            <fieldset>
+              <legend>Data to display</legend>
+              <div>
+                <input type="radio" id="conns" name="displayMode" value="conns" checked />
+                <label for="conns">Stephane's data</label>
+              </div>
+              <div>
+                <input type="radio" id="objectives" name="displayMode" value="objectives" />
+                <label for="objectives">Objectives</label>
+              </div>
+            </fieldset>
+          </div>
         </div>
       `: nothing}
       <zg-map > </zg-map>
@@ -50,9 +63,18 @@ export class ZGApp extends LitElement {
 
     .menu {
       position: fixed;
-      width: 100px;
+      width: 240px;
       height: 100%;
       background-color: #eeeeee;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu h1 {
+        height: 32px;
+        font-size: 1.4rem;
+        margin: 5px 10px 10px 55px;
     }
 `];
 }
