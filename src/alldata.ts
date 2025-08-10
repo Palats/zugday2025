@@ -12,6 +12,8 @@ export const relevantServicePoints: datatypes.ServicePoint[] = [];
 export const connections = (rawconnections as datatypes.ConnectionsJSON).connections;
 export const objectives = rawobjectives as datatypes.ObjectivesJSON;
 
+prepareData();
+
 // Preprocess the raw data. This must be called to have access to content,
 // and can be called in main loading scripts.
 export function prepareData() {
