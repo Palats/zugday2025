@@ -7,11 +7,18 @@ import * as alldata from "./alldata";
 import * as geo from "./geo";
 import * as common from "./common";
 
+export type MapMode = "conns" | "objectives";
+
+type Container = d3.Selection<SVGGElement, undefined, null, undefined>;
+
 /**
  * Map rendering.
  */
 @customElement("zg-map")
 export class ZGMap extends LitElement {
+    @property({ type: String })
+    mode: MapMode = "conns";
+
     @property({ type: Number })
     scale = 1;
 
@@ -19,10 +26,10 @@ export class ZGMap extends LitElement {
     private svg?: d3.Selection<SVGSVGElement, undefined, null, undefined>;
 
     @property({ type: Object })
-    private mapcontainer?: d3.Selection<SVGGElement, undefined, null, undefined>;
+    private mapcontainer?: Container;
 
     @property({ type: Object })
-    private featurescontainer?: d3.Selection<SVGGElement, undefined, null, undefined>;
+    private featurescontainer?: Container;
 
     // Basic dimensions of the data in SVG
     private width = 650;
@@ -44,7 +51,7 @@ export class ZGMap extends LitElement {
         this.featurescontainer = this.svg.append("g");
 
         // Map is generated only once - it is just scaled and panned with transform.
-        this.buildMap();
+        this.renderMap();
 
         // Set the zoomable property on the full SVG element so empty zones can also
         // be targets for zooming.
@@ -77,12 +84,31 @@ export class ZGMap extends LitElement {
         }
 
         // Features need to be re-rendered when scale is changing, as coordinates are moving around.
-        this.buildFeatures();
+        // Features projection is scaled manually, while panning relies on transform.
+        const featuresProjection = d3.geoMercator()
+            .scale(this.scale * this.mapProjection.scale())
+            .center([this.mapProjection.center()[0], this.mapProjection.center()[1]])
+            .translate([
+                this.scale * this.mapProjection.translate()[0],
+                this.scale * this.mapProjection.translate()[1],
+            ]);
+
+        if (this.featurescontainer) {
+            this.featurescontainer.selectChildren().remove();
+
+            if (this.mode === "conns") {
+                this.renderConns(featuresProjection, this.featurescontainer);
+            } else if (this.mode === "objectives") {
+                this.renderObjectives(featuresProjection, this.featurescontainer);
+            } else {
+                throw new Error(`unknown mode ${this.mode}`);
+            }
+        }
 
         return html`${this.svg.node()}`;
     }
 
-    buildMap() {
+    renderMap() {
         if (!this.mapcontainer) { return; }
         this.mapcontainer.selectChildren().remove();
 
@@ -114,31 +140,18 @@ export class ZGMap extends LitElement {
             .attr("d", path);
     }
 
-    buildFeatures() {
-        if (!this.featurescontainer) { return; }
-        this.featurescontainer.selectChildren().remove();
-
-        // features projection is scaled manually, while panning relies on transform.
-        const featuresProjection = d3.geoMercator()
-            .scale(this.scale * this.mapProjection.scale())
-            .center([this.mapProjection.center()[0], this.mapProjection.center()[1]])
-            .translate([
-                this.scale * this.mapProjection.translate()[0],
-                this.scale * this.mapProjection.translate()[1],
-            ]);
-
-
+    renderConns(projection: d3.GeoProjection, container: Container) {
         // Draw connections
-        const connectionGroup = this.featurescontainer.selectAll(".connection-group")
+        const connectionGroup = container.selectAll(".connection-group")
             .data(alldata.connections)
             .join("g");
 
         connectionGroup.append("line")
             .attr("class", "connection-line")
-            .attr("x1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
-            .attr("y1", c => featuresProjection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
-            .attr("x2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
-            .attr("y2", c => featuresProjection(alldata.servicePointsByName.get(c.target)!.wgs84)![1])
+            .attr("x1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![0])
+            .attr("y1", c => projection(alldata.servicePointsByName.get(c.source)!.wgs84)![1])
+            .attr("x2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![0])
+            .attr("y2", c => projection(alldata.servicePointsByName.get(c.target)!.wgs84)![1])
             .style("stroke-width", c => {
                 // We want to represent by the thickness whether the connection is fast or not.
                 // I.e., if the straight line connection takes a lot longer, it should be thin.
@@ -155,11 +168,11 @@ export class ZGMap extends LitElement {
             // to make them work.
 
             // Switch to local coordinate space for calculations of label position.
-            const source = featuresProjection([
+            const source = projection([
                 alldata.servicePointsByName.get(c.source)!.wgs84[0],
                 alldata.servicePointsByName.get(c.source)!.wgs84[1],
             ])!;
-            const target = featuresProjection([
+            const target = projection([
                 alldata.servicePointsByName.get(c.target)!.wgs84[0],
                 alldata.servicePointsByName.get(c.target)!.wgs84[1],
             ])!;
@@ -193,7 +206,7 @@ export class ZGMap extends LitElement {
         });
 
         // Draw cities
-        const cityGroup = this.featurescontainer.selectAll(".city-group")
+        const cityGroup = container.selectAll(".city-group")
             .data(alldata.relevantServicePoints)
             .enter()
             .append("g")
@@ -201,16 +214,20 @@ export class ZGMap extends LitElement {
 
         cityGroup.append("circle")
             .attr("class", "city")
-            .attr("cx", sp => featuresProjection(sp.wgs84)?.[0] || 0)
-            .attr("cy", sp => featuresProjection(sp.wgs84)?.[1] || 0)
+            .attr("cx", sp => projection(sp.wgs84)?.[0] || 0)
+            .attr("cy", sp => projection(sp.wgs84)?.[1] || 0)
             .attr("r", 5);
 
         // City label
         cityGroup.append("text")
             .attr("class", "city-label")
-            .attr("x", sp => featuresProjection(sp.wgs84)?.[0] || 0)
-            .attr("y", sp => (featuresProjection(sp.wgs84)?.[1] || 0) - 10)
+            .attr("x", sp => projection(sp.wgs84)?.[0] || 0)
+            .attr("y", sp => (projection(sp.wgs84)?.[1] || 0) - 10)
             .text(sp => sp.name);
+    }
+
+    renderObjectives(projection: d3.GeoProjection, container: Container) {
+        // Nothing for now.
     }
 
     static styles = [common.sharedCSS, css`
